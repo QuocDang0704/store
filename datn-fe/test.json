@@ -1,0 +1,20 @@
+{
+    "nonce": "x12…",
+    "accountNumber": "411…",
+    "expirationMonth": "02",
+    "expirationYear": "2025",
+    "nameOnAccount": "John Doe",
+    "cardType": "DEBIT",
+    "cardBrand": "VISA",
+    "billingAddress": {
+        "addressLine1": "5 Central Drive",
+        "addressLine2": "Apt 11",
+        "addressLine3": "",
+        "stateProvinceCode": "NC",
+        "postalCode": "27265",
+        "countryCode": "840",
+        "city": "High Point",
+        "phoneNumber": "336- 222-6060"
+    },
+    "source": "X123"
+}
