@@ -14,9 +14,15 @@ import {
   DialogActions,
   IconButton,
   CardActionArea,
+  Card,
+  CardContent,
+  Grid,
+  Chip,
+  Box,
+  Divider,
 } from '@mui/material';
 import { DataGrid } from '@mui/x-data-grid';
-import { Edit } from '@mui/icons-material';
+import { Edit, LocalShipping, ShoppingCart, CheckCircle, Cancel, Schedule } from '@mui/icons-material';
 import { Stack } from '@mui/system';
 import { toast } from 'react-toastify';
 
@@ -90,129 +96,22 @@ function Order() {
     return status ? status.name : statusValue;
   };
 
-  const columns = [
-    {
-      field: 'name',
-      headerName: 'Tên khách hàng',
-      width: 120,
-      align: 'center',
-      headerAlign: 'center',
-    },
-    {
-      field: 'code',
-      headerName: 'Mã đơn hàng',
-      width: 220,
-      align: 'left',
-      headerAlign: 'left',
-      renderCell: (params) => (
-        <Tooltip title={params.value}>
-          <span>{params.value}</span>
-        </Tooltip>
-      ),
-    },
-    {
-      field: 'paymentMethods',
-      headerName: 'Phương thức thanh toán',
-      width: 250,
-      align: 'center',
-      headerAlign: 'center',
-    },
-    {
-      field: 'total',
-      headerName: 'Tổng tiền',
-      width: 150,
-      valueFormatter: (params) =>
-        formatVietnameseCurrency(params.value) + ' VND',
-    },
-    {
-      field: 'status',
-      headerName: 'Trạng thái',
-      width: 170,
-      align: 'left',
-      headerAlign: 'left',
-      renderCell: (params) => (
-        <Tooltip title={getStatusName(params.value)}>
-          <span
-            style={{
-              backgroundColor: getStatusColor(params.value),
-              padding: '4px 8px',
-              borderRadius: '4px',
-              color: 'white',
-            }}
-          >
-            {getStatusName(params.value)}
-          </span>
-        </Tooltip>
-      ),
-    },
-    {
-      field: 'description',
-      headerName: 'Mô tả',
-      width: 300,
-      align: 'left',
-      headerAlign: 'left',
-    },
-    {
-      field: 'address',
-      headerName: 'Địa chỉ',
-      width: 350,
-      align: 'left',
-      headerAlign: 'left',
-      renderCell: (params) => (
-        <Tooltip title={params.value}>
-          <span>{params.value}</span>
-        </Tooltip>
-      ),
-    },
-    {
-      field: 'phone',
-      headerName: 'Số điện thoại',
-      width: 150,
-      align: 'left',
-      headerAlign: 'left',
-    },
-    {
-      field: 'actions',
-      headerName: 'Actions',
-      width: 150,
-      align: 'center',
-      headerAlign: 'center',
-      renderCell: (params) => {
-        return (
-          <IconButton
-            aria-label='update'
-            onClick={() => {
-              if (params.row.status === 'WaitForConfirmation') {
-                setListStatusChange([
-                  {
-                    value: 'Cancel',
-                    name: 'Hủy đơn hàng',
-                  },
-                ]);
-              } else if (params.row.status === 'Delivery') {
-                setListStatusChange([
-                  // {
-                  //   value: 'Cancel',
-                  //   name: 'Hủy đơn hàng',
-                  // },
-                  {
-                    value: 'Success',
-                    name: 'Giao thành công',
-                  },
-                ]);
-              } else {
-                setListStatusChange(null);
-              }
-
-              handleOpenModal(params.row);
-            }}
-          >
-            <Edit />
-          </IconButton>
-        );
-      },
-    },
-  ];
+  const getStatusIcon = (statusValue) => {
+    switch (statusValue) {
+      case 'WaitForConfirmation':
+        return <Schedule sx={{ color: '#f44336' }} />;
+      case 'PreparingGoods':
+        return <ShoppingCart sx={{ color: '#ff9800' }} />;
+      case 'Delivery':
+        return <LocalShipping sx={{ color: '#2196f3' }} />;
+      case 'Success':
+        return <CheckCircle sx={{ color: '#4caf50' }} />;
+      case 'Cancel':
+        return <Cancel sx={{ color: '#9e9e9e' }} />;
+      default:
+        return <Schedule sx={{ color: '#000000' }} />;
+    }
+  };
 
   const getStatusColor = (statusValue) => {
     switch (statusValue) {
@@ -263,26 +162,62 @@ function Order() {
           </DialogContentText>
         </DialogContent>
         <Stack
-          direction='row'
-          spacing={1}
-          justifyContent='flex-start'
-          sx={{ margin: 2 }}
+          direction={{ xs: 'column', sm: 'row' }}
+          spacing={2}
+          justifyContent="center"
+          alignItems="stretch"
+          sx={{ margin: 2, width: '100%' }}
         >
           {listStatusChange?.map((item) => (
             <Button
               key={item.value}
-              variant='contained'
-              color='info'
-              sx={{ borderRadius: '20px' }}
+              variant="contained"
+              color="info"
+              sx={{
+                borderRadius: '24px',
+                minWidth: 140,
+                fontWeight: 'bold',
+                boxShadow: 3,
+                textTransform: 'none',
+                flex: 1,
+                fontSize: '1rem',
+                py: 1.2,
+                px: 2,
+                letterSpacing: 0.5,
+                transition: 'all 0.2s',
+                '&:hover': {
+                  backgroundColor: '#0288d1',
+                  color: '#fff',
+                  boxShadow: 6,
+                },
+              }}
               onClick={() => handleUpdateStatus(item)}
             >
               {item.name}
             </Button>
           ))}
           <Button
-            variant='contained'
-            color='info'
-            sx={{ borderRadius: '20px' }}
+            variant="contained"
+            color="primary"
+            sx={{
+              borderRadius: '24px',
+              minWidth: 140,
+              fontWeight: 'bold',
+              boxShadow: 3,
+              textTransform: 'none',
+              flex: 1,
+              fontSize: '1rem',
+              py: 1.2,
+              px: 2,
+              letterSpacing: 0.5,
+              transition: 'all 0.2s',
+              '&:hover': {
+                backgroundColor: '#1565c0',
+                color: '#fff',
+                boxShadow: 6,
+              },
+            }}
+            startIcon={<Edit />}
             onClick={() => navigate(`/order-detail/${orderItem.id}`)}
           >
             Xem chi tiết
@@ -294,7 +229,7 @@ function Order() {
         <div className='container'>
           <div className='grid grid-cols-12 gap-4'>
             <div className='col-span-12 md:col-span-9'>
-              <Typography variant='h4' gutterBottom>
+              <Typography variant='h4' gutterBottom sx={{ fontWeight: 'bold', marginBottom: '10px', marginTop: '10px' }}>
                 Đơn hàng
               </Typography>
             </div>
@@ -314,19 +249,178 @@ function Order() {
                 ))}
               </ButtonGroup>
             </div>
+
             <div className='col-span-12'>
-              <div style={{ height: '100%', width: '100%' }}>
-                <DataGrid
-                  rows={listElements}
-                  columns={columns}
-                  pageSizeOptions={[5, 10, 25, 50, 100]}
-                  initialState={{
-                    pagination: { paginationModel: { pageSize: 10 } },
-                  }}
-                  hideFooterPagination={false}
-                  loading={isLoading}
-                />
-              </div>
+              {isLoading ? (
+                <Box display="flex" justifyContent="center" alignItems="center" minHeight="400px">
+                  <Typography variant="h6" color="textSecondary">
+                    Đang tải dữ liệu...
+                  </Typography>
+                </Box>
+              ) : listElements.length === 0 ? (
+                <Box display="flex" justifyContent="center" alignItems="center" minHeight="400px">
+                  <Typography variant="h6" color="textSecondary">
+                    Không có đơn hàng nào trong trạng thái này
+                  </Typography>
+                </Box>
+              ) : (
+                <Grid container spacing={3} sx={{ marginTop: '5px', marginBottom: '30px' }}>
+                  {listElements.map((order) => (
+                    <Grid item xs={12} sm={6} md={4} lg={3} key={order.id} style={{ display: 'flex', borderRadius: '10px', boxShadow: 3, }}>
+                      <Card
+                        sx={{
+                          minHeight: 340,
+                          width: '100%',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          justifyContent: 'space-between',
+                          transition: 'all 0.3s',
+                          '&:hover': {
+                            transform: 'translateY(-4px)',
+                            boxShadow: '0 8px 25px rgba(0,0,0,0.15)',
+                          },
+                          border: '1px solid #e0e0e0',
+                        }}
+                      >
+                        <CardContent sx={{ p: 2, flex: 1, display: 'flex', flexDirection: 'column' }}>
+                          {/* Header với mã đơn hàng và trạng thái */}
+                          <Box display="flex" justifyContent="space-between" alignItems="flex-start" mb={2}>
+                            <Box>
+                              <Chip
+                                icon={getStatusIcon(order.status)}
+                                label={getStatusName(order.status)}
+                                size="small"
+                                sx={{
+                                  backgroundColor: getStatusColor(order.status),
+                                  color: 'white',
+                                  fontWeight: 'bold',
+                                  fontSize: '0.75rem'
+                                }}
+                              />
+                              <Typography variant="caption" color="textSecondary" display="block">
+                                Mã đơn hàng
+                              </Typography>
+                              <Typography variant="body2" fontWeight="bold" color="primary">
+                                {order.code}
+                              </Typography>
+                            </Box>
+
+                          </Box>
+
+                          <Divider sx={{ my: 1.5 }} />
+
+                          {/* Thông tin khách hàng */}
+                          <Box mb={2}>
+                            <Typography variant="body2" fontWeight="bold" color="textPrimary" gutterBottom>
+                              {order.name}
+                            </Typography>
+                            <Typography variant="caption" color="textSecondary" display="block">
+                              📞 {order.phone}
+                            </Typography>
+                          </Box>
+
+                          {/* Địa chỉ */}
+                          <Box mb={2}>
+                            <Typography variant="caption" color="textSecondary" display="block">
+                              📍 Địa chỉ giao hàng
+                            </Typography>
+                            <Typography variant="body2" color="textPrimary" sx={{
+                              wordBreak: 'break-word',
+                              display: '-webkit-box',
+                              WebkitLineClamp: 2,
+                              WebkitBoxOrient: 'vertical',
+                              overflow: 'hidden'
+                            }}>
+                              {order.address}
+                            </Typography>
+                          </Box>
+
+                          <Divider sx={{ my: 1.5 }} />
+
+                          {/* Phương thức thanh toán và tổng tiền */}
+                          <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
+                            <Box>
+                              <Typography variant="caption" color="textSecondary" display="block">
+                                Thanh toán
+                              </Typography>
+                              <Typography variant="body2" color="textPrimary">
+                                {order.paymentMethods}
+                              </Typography>
+                            </Box>
+                            <Box textAlign="right">
+                              <Typography variant="caption" color="textSecondary" display="block">
+                                Tổng tiền
+                              </Typography>
+                              <Typography variant="body2" fontWeight="bold" color="primary">
+                                {formatVietnameseCurrency(order.total)} VND
+                              </Typography>
+                            </Box>
+                          </Box>
+
+                          {/* Mô tả */}
+                          {order.description && (
+                            <Box mb={2}>
+                              <Typography variant="caption" color="textSecondary" display="block">
+                                Ghi chú
+                              </Typography>
+                              <Typography variant="body2" color="textPrimary" sx={{
+                                fontStyle: 'italic',
+                                wordBreak: 'break-word',
+                                display: '-webkit-box',
+                                WebkitLineClamp: 2,
+                                WebkitBoxOrient: 'vertical',
+                                overflow: 'hidden'
+                              }}>
+                                {order.description}
+                              </Typography>
+                            </Box>
+                          )}
+
+                          <Box flexGrow={1} />
+                          <Box display="flex" gap={1} mt={2}>
+                            <Button
+                              size="small"
+                              variant="outlined"
+                              startIcon={<Edit />}
+                              sx={{ borderRadius: '20px', flex: 1 }}
+                              onClick={() => {
+                                if (order.status === 'WaitForConfirmation') {
+                                  setListStatusChange([
+                                    {
+                                      value: 'Cancel',
+                                      name: 'Hủy đơn hàng',
+                                    },
+                                  ]);
+                                } else if (order.status === 'Delivery') {
+                                  setListStatusChange([
+                                    {
+                                      value: 'Success',
+                                      name: 'Giao thành công',
+                                    },
+                                  ]);
+                                } else {
+                                  setListStatusChange(null);
+                                }
+                                handleOpenModal(order);
+                              }}
+                            >
+                              Cập nhật
+                            </Button>
+                            <Button
+                              size="small"
+                              variant="contained"
+                              sx={{ borderRadius: '20px', flex: 1 }}
+                              onClick={() => navigate(`/order-detail/${order.id}`)}
+                            >
+                              Chi tiết
+                            </Button>
+                          </Box>
+                        </CardContent>
+                      </Card>
+                    </Grid>
+                  ))}
+                </Grid>
+              )}
             </div>
           </div>
         </div>

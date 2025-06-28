@@ -7,6 +7,19 @@ import {
     Table,
     TextField,
     Typography,
+    Paper,
+    Card,
+    CardContent,
+    Divider,
+    Chip,
+    Dialog,
+    DialogTitle,
+    DialogContent,
+    DialogActions,
+    Alert,
+    Stack,
+    Tooltip,
+    Fade,
 } from "@mui/material";
 import TableBody from "@mui/material/TableBody";
 import TableCell from "@mui/material/TableCell";
@@ -16,26 +29,34 @@ import TablePagination from "@mui/material/TablePagination";
 import TableRow from "@mui/material/TableRow";
 import { Fragment, useEffect, useState } from "react";
 import CategoryService from '../service/CategoryService';
-import { AddCircleOutline } from '@mui/icons-material';
+import { 
+    Add as AddIcon, 
+    Edit as EditIcon, 
+    Delete as DeleteIcon,
+    Category as CategoryIcon,
+    Description as DescriptionIcon,
+    Save as SaveIcon,
+    Cancel as CancelIcon
+} from '@mui/icons-material';
 import Loading from '../utils/Loading';
 import { toast } from 'react-toastify';
-import { tr } from 'date-fns/locale';
 import HandleError from '../utils/HandleError';
-import ProductService from '../service/ProductService';
-
 
 const columns = [
-    { id: "STT", label: "STT", minWidth: 100 },
-    { id: "name", label: "Tên danh mục", minWidth: 100 },
-    { id: "description", label: "Mô tả", minWidth: 100 },
-    { id: "action", label: "Hành động", minWidth: 100 },
+    { id: "STT", label: "STT", minWidth: 80, align: 'center' },
+    { id: "name", label: "Tên danh mục", minWidth: 200 },
+    { id: "description", label: "Mô tả", minWidth: 300 },
+    { id: "action", label: "Hành động", minWidth: 150, align: 'center' },
 ];
+
 function CategoryPage() {
     const [page, setPage] = useState(0);
     const [rowsPerPage, setRowsPerPage] = useState(10);
     const [data, setData] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
     const [category, setCategory] = useState({});
+    const [isFormOpen, setIsFormOpen] = useState(false);
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
     useEffect(() => {
         fetchData();
@@ -58,29 +79,36 @@ function CategoryPage() {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        const data = new FormData(e.currentTarget);
-        console.log(data);
+        const formData = new FormData(e.currentTarget);
+        
+        if (!formData.get('name').trim()) {
+            toast.error('Vui lòng nhập tên danh mục');
+            return;
+        }
+
         try {
+            setIsSubmitting(true);
             if (category.id) {
                 const res = await CategoryService.update({
                     id: category.id,
-                    name: data.get('name'),
-                    description: data.get('description'),
+                    name: formData.get('name'),
+                    description: formData.get('description'),
                 });
                 if (res.code === '0') {
-                    toast.success('Cập nhật thành công');
-                    setCategory({});
+                    toast.success('Cập nhật danh mục thành công');
+                    handleCloseForm();
                     fetchData();
                 } else {
                     toast.error('Cập nhật thất bại');
                 }
             } else {
                 const res = await CategoryService.create({
-                    name: data.get('name'),
-                    description: data.get('description'),
+                    name: formData.get('name'),
+                    description: formData.get('description'),
                 });
                 if (res.code === '0') {
-                    toast.success('Thêm mới thành công');
+                    toast.success('Thêm danh mục mới thành công');
+                    handleCloseForm();
                     fetchData();
                 } else {
                     toast.error('Thêm mới thất bại');
@@ -89,27 +117,26 @@ function CategoryPage() {
         } catch (error) {
             HandleError.component(error, navigate);
         } finally {
-            setIsLoading(false);
+            setIsSubmitting(false);
         }
     }
 
     const handleDelete = async (id) => {
-        // confirm xóa
-        if (!window.confirm('Bạn có chắc chắn muốn xóa?')) {
+        if (!window.confirm('Bạn có chắc chắn muốn xóa danh mục này?')) {
             return;
         }
-        const resCheck = await CategoryService.checkProductExistByCategory(id);
-        if (resCheck?.response) {
-            toast.error('Danh mục này đang chứa sản phẩm, không thể xóa');
-            return;
-        }
-        toast.success('Xóa thành công');
+        
         try {
             setIsLoading(true);
+            const resCheck = await CategoryService.checkProductExistByCategory(id);
+            if (resCheck?.response) {
+                toast.error('Danh mục này đang chứa sản phẩm, không thể xóa');
+                return;
+            }
+            
             const res = await CategoryService.delete(id);
             if (res.code === '0') {
-                toast.success('Xóa thành công');
-                setCategory({});
+                toast.success('Xóa danh mục thành công');
                 fetchData();
             } else {
                 toast.error('Xóa thất bại');
@@ -121,6 +148,21 @@ function CategoryPage() {
         }
     }
 
+    const handleEdit = (row) => {
+        setCategory(row);
+        setIsFormOpen(true);
+    };
+
+    const handleAddNew = () => {
+        setCategory({});
+        setIsFormOpen(true);
+    };
+
+    const handleCloseForm = () => {
+        setCategory({});
+        setIsFormOpen(false);
+    };
+
     const handleChangePage = (event, newPage) => {
         setPage(newPage);
     };
@@ -129,84 +171,156 @@ function CategoryPage() {
         setRowsPerPage(+event.target.value);
         setPage(0);
     };
+
     return (
-        <Grid container spacing={3}>
+        <Box sx={{ p: 3, backgroundColor: '#f5f5f5', minHeight: '100vh' }}>
             <Loading isLoading={isLoading} />
-            <Grid item xs={12} sx={{ display: "flex", justifyContent: "space-between", margin: '0 0 5px 0' }}>
-                <Typography variant="h4" fontWeight="bold">
-                    Danh mục
-                </Typography>
-                <IconButton onClick={() => {
-                    setCategory({});
-                }}>
-                    <AddCircleOutline /> Thêm mới
-                </IconButton>
-            </Grid>
-            <Grid container item xs={12}
-                component='form'
-                onSubmit={handleSubmit}
-            >
-                <Grid item xs={2} sx={{ display: "flex", alignItems: "center" }}>
-                    <Typography>Tên danh mục</Typography>
-                </Grid>
-
-                <Grid item xs={10}>
-                    <TextField
-                        id='name'
-                        name='name'
-                        // label="Tên danh mục"
-                        variant="outlined"
-                        fullWidth
-                        margin="normal"
-                        value={category?.name || ""}
-                        onChange={(e) => {
-                            const value = e.target.value;
-                            setCategory((prev) => {
-                                return { ...prev, name: value };
-                            });
-                        }}
-                    />
-                </Grid>
-                <Grid item xs={2} sx={{ display: "flex", alignItems: "center" }}>
-                    <Typography>Mô tả</Typography>
-                </Grid>
-                <Grid item xs={10}>
-                    <TextField
-                        id='description'
-                        name='description'
-                        // label="Mô tả"
-                        multiline
-                        fullWidth
-                        margin="normal"
-                        rows={4}
-                        value={category.description || ""}
-                        onChange={(e) => {
-                            const value = e.target.value;
-                            setCategory((prev) => {
-                                return { ...prev, description: value };
-                            });
-                        }}
-                    />
-                </Grid>
-                <Grid item xs={12} sx={{ mt: 2 }}>
-                    <Box sx={{ display: "flex", justifyContent: "flex-end", width: 1 }}>
-                        <Button type='submit' variant="contained" fullWidth>
-                            {category.id ? "Cập nhật" : "Thêm mới"}
-                        </Button>
+            
+            {/* Header */}
+            <Paper elevation={2} sx={{ p: 3, mb: 3, borderRadius: 2 }}>
+                <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                    <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+                        <CategoryIcon sx={{ fontSize: 32, color: 'primary.main' }} />
+                        <Typography variant="h4" fontWeight="bold" color="primary">
+                            Quản lý Danh mục
+                        </Typography>
                     </Box>
-                </Grid>
-            </Grid>
+                    <Button
+                        variant="contained"
+                        startIcon={<AddIcon />}
+                        onClick={handleAddNew}
+                        sx={{
+                            borderRadius: 2,
+                            px: 3,
+                            py: 1,
+                            textTransform: 'none',
+                            fontSize: '1rem',
+                            fontWeight: 600
+                        }}
+                    >
+                        Thêm danh mục mới
+                    </Button>
+                </Box>
+            </Paper>
 
-            {/* table */}
-            <Grid item xs={12} className="my-4 p-2 border rounded">
-                <TableContainer sx={{ maxHeight: 440 }}>
-                    <Table stickyHeader aria-label="sticky table">
+            {/* Category Form Dialog */}
+            <Dialog 
+                open={isFormOpen} 
+                onClose={handleCloseForm}
+                maxWidth="md"
+                fullWidth
+                PaperProps={{
+                    sx: { borderRadius: 3 }
+                }}
+            >
+                <DialogTitle sx={{ 
+                    pb: 1, 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    gap: 1,
+                    borderBottom: '1px solid #e0e0e0'
+                }}>
+                    <CategoryIcon color="primary" />
+                    <Typography variant="h6" fontWeight="bold">
+                        {category.id ? 'Chỉnh sửa danh mục' : 'Thêm danh mục mới'}
+                    </Typography>
+                </DialogTitle>
+                
+                <form onSubmit={handleSubmit}>
+                    <DialogContent sx={{ pt: 3 }}>
+                        <Grid container spacing={3}>
+                            <Grid item xs={12}>
+                                <TextField
+                                    id='name'
+                                    name='name'
+                                    label="Tên danh mục"
+                                    variant="outlined"
+                                    fullWidth
+                                    required
+                                    value={category?.name || ""}
+                                    onChange={(e) => {
+                                        setCategory((prev) => ({
+                                            ...prev, 
+                                            name: e.target.value
+                                        }));
+                                    }}
+                                    InputProps={{
+                                        startAdornment: <CategoryIcon sx={{ mr: 1, color: 'text.secondary' }} />
+                                    }}
+                                />
+                            </Grid>
+                            <Grid item xs={12}>
+                                <TextField
+                                    id='description'
+                                    name='description'
+                                    label="Mô tả"
+                                    multiline
+                                    fullWidth
+                                    rows={4}
+                                    value={category?.description || ""}
+                                    onChange={(e) => {
+                                        setCategory((prev) => ({
+                                            ...prev, 
+                                            description: e.target.value
+                                        }));
+                                    }}
+                                    InputProps={{
+                                        startAdornment: <DescriptionIcon sx={{ mr: 1, color: 'text.secondary' }} />
+                                    }}
+                                />
+                            </Grid>
+                        </Grid>
+                    </DialogContent>
+                    
+                    <DialogActions sx={{ p: 3, pt: 1 }}>
+                        <Button
+                            onClick={handleCloseForm}
+                            startIcon={<CancelIcon />}
+                            variant="outlined"
+                            sx={{ borderRadius: 2, px: 3 }}
+                        >
+                            Hủy
+                        </Button>
+                        <Button
+                            type="submit"
+                            variant="contained"
+                            startIcon={<SaveIcon />}
+                            disabled={isSubmitting}
+                            sx={{ 
+                                borderRadius: 2, 
+                                px: 3,
+                                textTransform: 'none',
+                                fontWeight: 600
+                            }}
+                        >
+                            {isSubmitting ? 'Đang xử lý...' : (category.id ? 'Cập nhật' : 'Thêm mới')}
+                        </Button>
+                    </DialogActions>
+                </form>
+            </Dialog>
+
+            {/* Data Table */}
+            <Paper elevation={2} sx={{ borderRadius: 2, overflow: 'hidden' }}>
+                <Box sx={{ p: 3, borderBottom: '1px solid #e0e0e0', backgroundColor: '#fafafa' }}>
+                    <Typography variant="h6" fontWeight="bold" color="text.secondary">
+                        Danh sách danh mục ({data.length} danh mục)
+                    </Typography>
+                </Box>
+                
+                <TableContainer sx={{ maxHeight: 600 }}>
+                    <Table stickyHeader>
                         <TableHead>
-                            <TableRow>
+                            <TableRow sx={{ backgroundColor: '#f5f5f5' }}>
                                 {columns.map((column) => (
                                     <TableCell
                                         key={column.id}
-                                        style={{ minWidth: column.minWidth }}
+                                        align={column.align || 'left'}
+                                        sx={{
+                                            fontWeight: 700,
+                                            backgroundColor: '#f5f5f5',
+                                            color: 'text.primary',
+                                            borderBottom: '2px solid #e0e0e0'
+                                        }}
                                     >
                                         {column.label}
                                     </TableCell>
@@ -214,54 +328,101 @@ function CategoryPage() {
                             </TableRow>
                         </TableHead>
                         <TableBody>
-                            {/* rows */}
-                            {data.map((row, index) => {
-                                return (
-                                    <TableRow hover role="checkbox" tabIndex={-1} key={row.id}>
-                                        {columns.map((column) => {
-                                            const value = row[column.id];
-                                            return (
-                                                <TableCell key={column.id}>
-                                                    {column.id === "STT" ? index + 1 : ""}
-                                                    {column.id === "action" ? (
-                                                        <Fragment>
-                                                            <Button variant="contained"
-                                                                sx={{ marginRight: 2 }}
-                                                                onClick={() => {
-                                                                    setCategory(row);
-                                                                }} >
-                                                                Sửa
-                                                            </Button>
-                                                            <Button variant="contained" className="ml-2"
-                                                                onClick={() => handleDelete(row.id)}
-                                                            >
-                                                                Xóa
-                                                            </Button>
-                                                        </Fragment>
-                                                    ) : (
-                                                        value
-                                                    )}
-                                                </TableCell>
-                                            );
-                                        })}
+                            {data.length === 0 ? (
+                                <TableRow>
+                                    <TableCell colSpan={4} align="center" sx={{ py: 4 }}>
+                                        <Box sx={{ textAlign: 'center' }}>
+                                            <CategoryIcon sx={{ fontSize: 48, color: 'text.disabled', mb: 2 }} />
+                                            <Typography variant="h6" color="text.secondary">
+                                                Chưa có danh mục nào
+                                            </Typography>
+                                            <Typography variant="body2" color="text.secondary">
+                                                Hãy thêm danh mục đầu tiên để bắt đầu
+                                            </Typography>
+                                        </Box>
+                                    </TableCell>
+                                </TableRow>
+                            ) : (
+                                data.map((row, index) => (
+                                    <TableRow 
+                                        hover 
+                                        key={row.id}
+                                        sx={{ 
+                                            '&:hover': { 
+                                                backgroundColor: '#f8f9fa' 
+                                            } 
+                                        }}
+                                    >
+                                        <TableCell align="center" sx={{ fontWeight: 600 }}>
+                                            {index + 1}
+                                        </TableCell>
+                                        <TableCell>
+                                            <Typography variant="subtitle1" fontWeight="600">
+                                                {row.name}
+                                            </Typography>
+                                        </TableCell>
+                                        <TableCell>
+                                            <Typography variant="body2" color="text.secondary">
+                                                {row.description || 'Không có mô tả'}
+                                            </Typography>
+                                        </TableCell>
+                                        <TableCell align="center">
+                                            <Stack direction="row" spacing={1} justifyContent="center">
+                                                <Tooltip title="Chỉnh sửa" TransitionComponent={Fade}>
+                                                    <IconButton
+                                                        onClick={() => handleEdit(row)}
+                                                        sx={{ 
+                                                            color: 'primary.main',
+                                                            '&:hover': { 
+                                                                backgroundColor: 'primary.light',
+                                                                color: 'white'
+                                                            }
+                                                        }}
+                                                    >
+                                                        <EditIcon />
+                                                    </IconButton>
+                                                </Tooltip>
+                                                <Tooltip title="Xóa" TransitionComponent={Fade}>
+                                                    <IconButton
+                                                        onClick={() => handleDelete(row.id)}
+                                                        sx={{ 
+                                                            color: 'error.main',
+                                                            '&:hover': { 
+                                                                backgroundColor: 'error.light',
+                                                                color: 'white'
+                                                            }
+                                                        }}
+                                                    >
+                                                        <DeleteIcon />
+                                                    </IconButton>
+                                                </Tooltip>
+                                            </Stack>
+                                        </TableCell>
                                     </TableRow>
-                                );
-                            })}
+                                ))
+                            )}
                         </TableBody>
                     </Table>
                 </TableContainer>
-                <TablePagination
-                    rowsPerPageOptions={[5, 10, 25, 100]}
-                    component="div"
-                    count={data.length}
-                    rowsPerPage={rowsPerPage}
-                    page={page}
-                    onPageChange={handleChangePage}
-                    onRowsPerPageChange={handleChangeRowsPerPage}
-                />
-            </Grid>
-        </Grid>
+                
+                {data.length > 0 && (
+                    <TablePagination
+                        rowsPerPageOptions={[5, 10, 25, 50]}
+                        component="div"
+                        count={data.length}
+                        rowsPerPage={rowsPerPage}
+                        page={page}
+                        onPageChange={handleChangePage}
+                        onRowsPerPageChange={handleChangeRowsPerPage}
+                        sx={{
+                            borderTop: '1px solid #e0e0e0',
+                            backgroundColor: '#fafafa'
+                        }}
+                    />
+                )}
+            </Paper>
+        </Box>
     );
 }
 
-export default CategoryPage
+export default CategoryPage;

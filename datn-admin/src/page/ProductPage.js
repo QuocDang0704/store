@@ -11,6 +11,16 @@ import {
     Table,
     TextField,
     Typography,
+    Paper,
+    Dialog,
+    DialogTitle,
+    DialogContent,
+    DialogActions,
+    Stack,
+    Tooltip,
+    Fade,
+    Chip,
+    Avatar
 } from "@mui/material";
 import TableBody from "@mui/material/TableBody";
 import TableCell from "@mui/material/TableCell";
@@ -19,26 +29,24 @@ import TableHead from "@mui/material/TableHead";
 import TablePagination from "@mui/material/TablePagination";
 import TableRow from "@mui/material/TableRow";
 import { Fragment, useEffect, useState } from "react";
-import { AddCircleOutline, Delete, Details, Edit } from '@mui/icons-material';
+import { Add as AddIcon, Edit as EditIcon, Delete as DeleteIcon, Info as InfoIcon, Inventory as ProductIcon, CloudUpload as CloudUploadIcon } from '@mui/icons-material';
 import Loading from '../utils/Loading';
 import { toast } from 'react-toastify';
 import ProductService from '../service/ProductService';
-import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import CategoryService from '../service/CategoryService';
 import SupplierService from '../service/SupplierService';
 import ProductDetail from '../components/ProductDetail';
 import { useNavigate } from 'react-router-dom';
 import HandleError from '../utils/HandleError';
 
-
 const columns = [
-    { id: "STT", label: "STT", minWidth: 10 },
-    { id: "images", label: "Ảnh", minWidth: 100 },
-    { id: "name", label: "Tên sản phẩm", minWidth: 100 },
-    { id: "price", label: "Giá", minWidth: 100 },
-    { id: "material", label: "Chất liệu", minWidth: 100 },
-    { id: "description", label: "Mô tả", minWidth: 100 },
-    { id: "action", label: "Hành động", minWidth: 150 },
+    { id: "STT", label: "STT", minWidth: 80, align: 'center' },
+    { id: "images", label: "Ảnh", minWidth: 100, align: 'center' },
+    { id: "name", label: "Tên sản phẩm", minWidth: 200 },
+    { id: "price", label: "Giá", minWidth: 120, align: 'right' },
+    { id: "material", label: "Chất liệu", minWidth: 120 },
+    { id: "description", label: "Mô tả", minWidth: 200 },
+    { id: "action", label: "Hành động", minWidth: 150, align: 'center' },
 ];
 
 function ProductPage() {
@@ -53,7 +61,9 @@ function ProductPage() {
     const [listCategory, setListCategory] = useState([]);
     const [listSupplier, setListSupplier] = useState([]);
     const [imagePreview, setImagePreview] = useState(null);
-    const [open, setOpen] = useState(false);
+    const [openDetail, setOpenDetail] = useState(false);
+    const [isFormOpen, setIsFormOpen] = useState(false);
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
     useEffect(() => {
         fetchData();
@@ -62,42 +72,42 @@ function ProductPage() {
     const fetchData = async () => {
         try {
             setIsLoading(true);
-            const resCategory = await CategoryService.getAll({
-                page: 0,
-            });
+            const resCategory = await CategoryService.getAll({ page: 0 });
             setListCategory(resCategory?.response?.content);
-            const resSupplier = await SupplierService.getAll({
-                page: 0,
-            });
+            const resSupplier = await SupplierService.getAll({ page: 0 });
             setListSupplier(resSupplier?.response?.content);
-
-            const res = await ProductService.getProduct({
-                page: page,
-                size: rowsPerPage,
-            });
+            const res = await ProductService.getProduct({ page: page, size: rowsPerPage });
             setData(res?.response?.content);
             setCount(res?.response?.totalElements);
-
         } catch (e) {
             HandleError.component(e, navigate);
         } finally {
             setIsLoading(false);
         }
-
     };
 
-    const handleOpen = () => {
-        setOpen(true);
-    }
+    const handleOpenDetail = (row) => {
+        setDataDetail(row);
+        setOpenDetail(true);
+    };
+    const handleCloseDetail = () => {
+        setOpenDetail(false);
+    };
 
-    const handleClose = () => {
-        setOpen(false);
-    }
+    const handleOpenForm = (product = {}) => {
+        setItem(product);
+        setImagePreview(product.images || null);
+        setIsFormOpen(true);
+    };
+    const handleCloseForm = () => {
+        setItem({});
+        setImagePreview(null);
+        setIsFormOpen(false);
+    };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         const data = new FormData(e.currentTarget);
-
         const dataSend = {
             id: item.id || null,
             name: data.get('name'),
@@ -107,15 +117,14 @@ function ProductPage() {
             categoryId: data.get('categoryId'),
             supplierId: data.get('supplierId'),
             imagesFile: data.get('upload-file'),
-        }
-        console.log(dataSend);
+        };
         try {
+            setIsSubmitting(true);
             if (item.id) {
                 const res = await ProductService.update(dataSend);
                 if (res.code === '0') {
                     toast.success('Cập nhật thành công');
-                    setItem({});
-                    setImagePreview(null);
+                    handleCloseForm();
                     setPage(0);
                     fetchData();
                 } else {
@@ -126,7 +135,7 @@ function ProductPage() {
                 if (res.code === '0') {
                     toast.success('Thêm mới thành công');
                     setPage(0);
-                    setImagePreview(null);
+                    handleCloseForm();
                     fetchData();
                 } else {
                     toast.error('Thêm mới thất bại');
@@ -135,21 +144,19 @@ function ProductPage() {
         } catch (e) {
             HandleError.component(e, navigate);
         } finally {
-            setIsLoading(false);
+            setIsSubmitting(false);
         }
-    }
+    };
 
     const handleDelete = async (id) => {
-        // confirm xóa
-        if (!window.confirm('Bạn có chắc chắn muốn xóa?')) {
+        if (!window.confirm('Bạn có chắc chắn muốn xóa sản phẩm này?')) {
             return;
         }
-
         try {
+            setIsLoading(true);
             const res = await ProductService.delete(id);
             if (res.code === '0') {
                 toast.success('Xóa thành công');
-                setItem({});
                 fetchData();
             } else {
                 toast.error('Xóa thất bại');
@@ -159,7 +166,7 @@ function ProductPage() {
         } finally {
             setIsLoading(false);
         }
-    }
+    };
 
     const handleChangePage = (event, newPage) => {
         setPage(newPage);
@@ -169,13 +176,205 @@ function ProductPage() {
         setRowsPerPage(+event.target.value);
         setPage(0);
     };
+
+    const formatVietnameseCurrency = (value) => {
+        return new Intl.NumberFormat('vi-VN', {
+            style: 'currency',
+            currency: 'VND'
+        }).format(value || 0);
+    };
+
     return (
-        <Grid container spacing={3}>
+        <Box sx={{ p: 3, backgroundColor: '#f5f5f5', minHeight: '100vh' }}>
             <Loading isLoading={isLoading} />
+            {/* Header */}
+            <Paper elevation={2} sx={{ p: 3, mb: 3, borderRadius: 2 }}>
+                <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                    <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+                        <ProductIcon sx={{ fontSize: 32, color: 'primary.main' }} />
+                        <Typography variant="h4" fontWeight="bold" color="primary">
+                            Quản lý Sản phẩm
+                        </Typography>
+                    </Box>
+                    <Button
+                        variant="contained"
+                        startIcon={<AddIcon />}
+                        onClick={() => handleOpenForm()}
+                        sx={{
+                            borderRadius: 2,
+                            px: 3,
+                            py: 1,
+                            textTransform: 'none',
+                            fontSize: '1rem',
+                            fontWeight: 600
+                        }}
+                    >
+                        Thêm sản phẩm mới
+                    </Button>
+                </Box>
+            </Paper>
+
+            {/* Product Form Dialog */}
+            <Dialog 
+                open={isFormOpen} 
+                onClose={handleCloseForm}
+                maxWidth="md"
+                fullWidth
+                PaperProps={{
+                    sx: { borderRadius: 3 }
+                }}
+            >
+                <DialogTitle sx={{ 
+                    pb: 1, 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    gap: 1,
+                    borderBottom: '1px solid #e0e0e0'
+                }}>
+                    <ProductIcon color="primary" />
+                    <Typography variant="h6" fontWeight="bold">
+                        {item.id ? 'Chỉnh sửa sản phẩm' : 'Thêm sản phẩm mới'}
+                    </Typography>
+                </DialogTitle>
+                <form onSubmit={handleSubmit}>
+                    <DialogContent sx={{ pt: 3 }}>
+                        <Grid container spacing={3}>
+                            <Grid item xs={12}>
+                                <TextField
+                                    id='name'
+                                    name='name'
+                                    label="Tên sản phẩm"
+                                    variant="outlined"
+                                    fullWidth
+                                    required
+                                    defaultValue={item?.name || ""}
+                                />
+                            </Grid>
+                            <Grid item xs={12}>
+                                <TextField
+                                    id='description'
+                                    name='description'
+                                    label="Mô tả"
+                                    multiline
+                                    fullWidth
+                                    rows={3}
+                                    defaultValue={item?.description || ""}
+                                />
+                            </Grid>
+                            <Grid item xs={12}>
+                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                                    <Button
+                                        variant="contained"
+                                        component="label"
+                                        startIcon={<CloudUploadIcon />}
+                                    >
+                                        Chọn ảnh
+                                        <input
+                                            accept="image/*"
+                                            type="file"
+                                            name="upload-file"
+                                            hidden
+                                            onChange={(e) => {
+                                                const file = e.target.files[0];
+                                                setImagePreview(URL.createObjectURL(file));
+                                            }}
+                                        />
+                                    </Button>
+                                    {imagePreview && (
+                                        <Avatar
+                                            src={imagePreview}
+                                            alt="Ảnh xem trước"
+                                            sx={{ width: 80, height: 80, borderRadius: 2, ml: 2 }}
+                                        />
+                                    )}
+                                </Box>
+                            </Grid>
+                            <Grid item xs={12}>
+                                <TextField
+                                    id='price'
+                                    name='price'
+                                    label="Giá"
+                                    variant="outlined"
+                                    fullWidth
+                                    required
+                                    defaultValue={item?.price || ""}
+                                />
+                            </Grid>
+                            <Grid item xs={12}>
+                                <TextField
+                                    id='material'
+                                    name='material'
+                                    label="Chất liệu"
+                                    variant="outlined"
+                                    fullWidth
+                                    required
+                                    defaultValue={item?.material || ""}
+                                />
+                            </Grid>
+                            <Grid item xs={12}>
+                                <FormControl fullWidth variant="outlined">
+                                    <Select
+                                        labelId="category-label"
+                                        id="categoryId"
+                                        name="categoryId"
+                                        defaultValue={item.categoryId || ""}
+                                    >
+                                        {listCategory.map((category) => (
+                                            <MenuItem key={category.id} value={category.id}>
+                                                {category.name}
+                                            </MenuItem>
+                                        ))}
+                                    </Select>
+                                </FormControl>
+                            </Grid>
+                            <Grid item xs={12}>
+                                <FormControl fullWidth variant="outlined">
+                                    <Select
+                                        labelId="supplier-label"
+                                        id="supplierId"
+                                        name="supplierId"
+                                        defaultValue={item.supplierId || ""}
+                                    >
+                                        {listSupplier.map((supplier) => (
+                                            <MenuItem key={supplier.id} value={supplier.id}>
+                                                {supplier.name}
+                                            </MenuItem>
+                                        ))}
+                                    </Select>
+                                </FormControl>
+                            </Grid>
+                        </Grid>
+                    </DialogContent>
+                    <DialogActions sx={{ p: 3, pt: 1 }}>
+                        <Button
+                            onClick={handleCloseForm}
+                            variant="outlined"
+                            sx={{ borderRadius: 2, px: 3 }}
+                        >
+                            Hủy
+                        </Button>
+                        <Button
+                            type="submit"
+                            variant="contained"
+                            disabled={isSubmitting}
+                            sx={{ 
+                                borderRadius: 2, 
+                                px: 3,
+                                textTransform: 'none',
+                                fontWeight: 600
+                            }}
+                        >
+                            {isSubmitting ? 'Đang xử lý...' : (item.id ? 'Cập nhật' : 'Thêm mới')}
+                        </Button>
+                    </DialogActions>
+                </form>
+            </Dialog>
+
+            {/* Product Detail Modal */}
             <Modal
                 keepMounted
-                open={open}
-                onClose={handleClose}
+                open={openDetail}
+                onClose={handleCloseDetail}
                 aria-labelledby="keep-mounted-modal-title"
                 aria-describedby="keep-mounted-modal-description"
             >
@@ -187,234 +386,50 @@ function ProductPage() {
                         transform: 'translate(-50%, -50%)',
                         width: 900,
                         bgcolor: 'background.paper',
-                        // border: '1px solid #000',
-                        borderRadius: 5,
+                        borderRadius: 3,
                         boxShadow: 24,
                         p: 4,
-                        maxHeight: 'calc(100vh - 100px)', // Giới hạn chiều cao của modal và trừ điều chỉnh cho tiêu đề và nút đóng
-                        overflowY: 'hidden', // Ẩn thanh cuộn mặc định
+                        maxHeight: 'calc(100vh - 100px)',
+                        overflowY: 'hidden',
                         '&::-webkit-scrollbar': {
-                            width: '3px',
+                            width: '6px',
                         },
                         '&::-webkit-scrollbar-thumb': {
                             backgroundColor: '#888',
                             borderRadius: '3px',
                         },
                         '&:hover': {
-                            overflowY: 'auto', // Hiển thị thanh cuộn khi di chuột vào modal
+                            overflowY: 'auto',
                         },
                     }}
                 >
                     <Typography id="keep-mounted-modal-description" sx={{ mt: 2 }}>
-                        {open && <ProductDetail productDetails={dataDetail} />}
+                        {openDetail && <ProductDetail productDetails={dataDetail} />}
                     </Typography>
                 </Box>
             </Modal>
 
-
-            <Grid item xs={12} sx={{ display: "flex", justifyContent: "space-between", margin: '0 0 5px 0' }}>
-                <Typography variant="h4" fontWeight="bold">
-                    Sản phẩm
-                </Typography>
-                <IconButton onClick={() => {
-                    setItem({});
-                    setImagePreview(null);
-                }}>
-                    <AddCircleOutline /> Thêm mới
-                </IconButton>
-            </Grid>
-            <Grid container item xs={12} component='form' onSubmit={handleSubmit}>
-                <Grid item xs={2} sx={{ display: "flex", alignItems: "center" }}>
-                    <Typography>Tên Sản phẩm</Typography>
-                </Grid>
-                <Grid item xs={10}>
-                    <TextField
-                        id='name'
-                        name='name'
-                        variant="outlined"
-                        fullWidth
-                        margin="normal"
-                        value={item?.name || ""}
-                        onChange={(e) => {
-                            const value = e.target.value;
-                            setItem((prev) => {
-                                return { ...prev, name: value };
-                            });
-                        }}
-                    />
-                </Grid>
-
-                <Grid item xs={2} sx={{ display: "flex", alignItems: "center" }}>
-                    <Typography>Mô tả</Typography>
-                </Grid>
-                <Grid item xs={10}>
-                    <TextField
-                        id='description'
-                        name='description'
-                        multiline
-                        fullWidth
-                        margin="normal"
-                        rows={4}
-                        value={item.description || ""}
-                        onChange={(e) => {
-                            const value = e.target.value;
-                            setItem((prev) => {
-                                return { ...prev, description: value };
-                            });
-                        }}
-                    />
-                </Grid>
-
-                <Grid item xs={2} sx={{ display: "flex", alignItems: "center" }}>
-                    <Typography>Ảnh</Typography>
-                </Grid>
-                <Grid item xs={10} sx={{ display: "flex", alignItems: "center", mt: 2 }}>
-                    <input
-                        accept="image/*"
-                        style={{ display: 'none' }}
-                        id="upload-file"
-                        name="upload-file"
-                        type="file"
-                        onChange={(e) => {
-                            const file = e.target.files[0];
-                            setImagePreview(URL.createObjectURL(file)); // Hiển thị xem trước ảnh
-                            // Handle file upload logic here
-                        }}
-                    />
-                    <label htmlFor="upload-file">
-                        <Button
-                            variant="contained"
-                            component="span"
-                            startIcon={<CloudUploadIcon />}
-                        >
-                            Chọn ảnh
-                        </Button>
-                    </label>
-                    {imagePreview && (
-                        <img
-                            src={imagePreview}
-                            alt="Ảnh xem trước"
-                            style={{ marginLeft: '30px', maxWidth: '150px', maxHeight: '150px' }}
-                        />
-                    )}
-                </Grid>
-
-                <Grid item xs={2} sx={{ display: "flex", alignItems: "center" }}>
-                    <Typography>Giá</Typography>
-                </Grid>
-                <Grid item xs={10}>
-                    <TextField
-                        id='price'
-                        name='price'
-                        variant="outlined"
-                        fullWidth
-                        margin="normal"
-                        value={item?.price || ""}
-                        onChange={(e) => {
-                            const value = e.target.value;
-                            setItem((prev) => {
-                                return { ...prev, price: value };
-                            });
-                        }}
-                    />
-                </Grid>
-
-                <Grid item xs={2} sx={{ display: "flex", alignItems: "center" }}>
-                    <Typography>Chất liệu</Typography>
-                </Grid>
-                <Grid item xs={10}>
-                    <TextField
-                        id='material'
-                        name='material'
-                        variant="outlined"
-                        fullWidth
-                        margin="normal"
-                        value={item?.material || ""}
-                        onChange={(e) => {
-                            const value = e.target.value;
-                            setItem((prev) => {
-                                return { ...prev, material: value };
-                            });
-                        }}
-                    />
-                </Grid>
-                <Grid item xs={2} sx={{ display: "flex", alignItems: "center" }}>
-                    <Typography>Danh mục</Typography>
-                </Grid>
-                <Grid item xs={10}>
-                    <FormControl fullWidth variant="outlined" margin="normal">
-                        <Select
-                            labelId="category-label"
-                            id="categoryId"
-                            name="categoryId"
-                            value={item.categoryId || ""}
-                            onChange={(e) => {
-                                const value = e.target.value;
-                                console.log(value);
-                                setItem((prev) => {
-                                    return { ...prev, categoryId: value };
-                                });
-                            }}
-                        >
-                            {listCategory.map((category) => (
-                                <MenuItem key={category.id} value={category.id}>
-                                    {category.name}
-                                </MenuItem>
-                            ))}
-                        </Select>
-                    </FormControl>
-                </Grid>
-
-                <Grid item xs={2} sx={{ display: "flex", alignItems: "center" }}>
-                    <Typography>Nhà cung cấp</Typography>
-                </Grid>
-                <Grid item xs={10}>
-                    <FormControl fullWidth variant="outlined" margin="normal">
-                        <Select
-                            labelId="supplier-label"
-                            id="supplierId"
-                            name="supplierId"
-                            value={item.supplierId || ""}
-                            onChange={(e) => {
-                                const value = e.target.value;
-                                setItem((prev) => {
-                                    return { ...prev, supplierId: value };
-                                });
-                            }}
-                        >
-                            {listSupplier.map((supplier) => (
-                                <MenuItem key={supplier.id} value={supplier.id}>
-                                    {supplier.name}
-                                </MenuItem>
-                            ))}
-                        </Select>
-                    </FormControl>
-                </Grid>
-
-                <Grid item xs={12} sx={{ mt: 2 }}>
-                    <Box sx={{ display: "flex", justifyContent: "flex-end", width: 1 }}>
-                        <Button type='submit' variant="contained" fullWidth>
-                            {item.id ? "Cập nhật" : "Thêm mới"}
-                        </Button>
-                    </Box>
-                </Grid>
-            </Grid>
-
-            <Grid item xs={12}
-                sx={{
-                    my: 4,
-                    p: 2,
-                    // border: 1,
-                    borderRadius: 1,
-                }}>
-                <TableContainer >
-                    <Table stickyHeader aria-label="sticky table">
+            {/* Data Table */}
+            <Paper elevation={2} sx={{ borderRadius: 2, overflow: 'hidden' }}>
+                <Box sx={{ p: 3, borderBottom: '1px solid #e0e0e0', backgroundColor: '#fafafa' }}>
+                    <Typography variant="h6" fontWeight="bold" color="text.secondary">
+                        Danh sách sản phẩm ({count} sản phẩm)
+                    </Typography>
+                </Box>
+                <TableContainer sx={{ maxHeight: 600 }}>
+                    <Table stickyHeader>
                         <TableHead>
-                            <TableRow>
+                            <TableRow sx={{ backgroundColor: '#f5f5f5' }}>
                                 {columns.map((column) => (
                                     <TableCell
                                         key={column.id}
-                                        style={{ minWidth: column.minWidth }}
+                                        align={column.align || 'left'}
+                                        sx={{
+                                            fontWeight: 700,
+                                            backgroundColor: '#f5f5f5',
+                                            color: 'text.primary',
+                                            borderBottom: '2px solid #e0e0e0'
+                                        }}
                                     >
                                         {column.label}
                                     </TableCell>
@@ -422,82 +437,139 @@ function ProductPage() {
                             </TableRow>
                         </TableHead>
                         <TableBody>
-                            {data?.map((row, index) => {
-                                return (
-                                    <TableRow hover
-                                        role="checkbox" tabIndex={-1} key={row.id}
+                            {data.length === 0 ? (
+                                <TableRow>
+                                    <TableCell colSpan={7} align="center" sx={{ py: 4 }}>
+                                        <Box sx={{ textAlign: 'center' }}>
+                                            <ProductIcon sx={{ fontSize: 48, color: 'text.disabled', mb: 2 }} />
+                                            <Typography variant="h6" color="text.secondary">
+                                                Chưa có sản phẩm nào
+                                            </Typography>
+                                            <Typography variant="body2" color="text.secondary">
+                                                Hãy thêm sản phẩm đầu tiên để bắt đầu
+                                            </Typography>
+                                        </Box>
+                                    </TableCell>
+                                </TableRow>
+                            ) : (
+                                data.map((row, index) => (
+                                    <TableRow 
+                                        hover 
+                                        key={row.id}
+                                        sx={{ 
+                                            '&:hover': { 
+                                                backgroundColor: '#f8f9fa' 
+                                            } 
+                                        }}
                                     >
-                                        {columns.map((column) => {
-                                            const value = row[column.id];
-                                            return (
-                                                <TableCell key={column.id}
-                                                >
-                                                    {column.id === "STT" ? page * 10 + index + 1 : ""}
-
-                                                    {column.id === "images" ? (
-                                                        <img src={value} alt="product" style={{ width: 50, height: 50 }} />
-                                                    ) : column.id === "action" ? (
-                                                        <Fragment>
-                                                            <IconButton
-                                                                size='small'
-                                                                onClick={() => {
-                                                                    setItem({
-                                                                        ...row,
-                                                                        categoryId: row.category.id,
-                                                                        supplierId: row.supplier.id,
-                                                                    });
-                                                                    console.log({
-                                                                        ...row,
-                                                                        categoryId: row.category.id,
-                                                                        supplierId: row.supplier.id,
-                                                                    });
-                                                                    setImagePreview(row.images);
-                                                                    window.scrollTo(0, 0);
-                                                                }}
-                                                            >
-                                                                <Edit />
-                                                            </IconButton>
-                                                            <IconButton
-                                                                size='small'
-                                                                onClick={() => handleDelete(row.id)}
-                                                            >
-                                                                <Delete />
-                                                            </IconButton>
-                                                            <IconButton
-                                                                size='small'
-                                                                onClick={() => {
-                                                                    handleOpen();
-                                                                    setDataDetail(row);
-                                                                }}
-                                                            >
-                                                                <Details />
-                                                            </IconButton>
-                                                        </Fragment>
-
-                                                    ) : (
-                                                        value
-                                                    )}
-                                                </TableCell>
-                                            );
-                                        })}
+                                        <TableCell align="center" sx={{ fontWeight: 600 }}>
+                                            {page * rowsPerPage + index + 1}
+                                        </TableCell>
+                                        <TableCell align="center">
+                                            <Avatar
+                                                src={row.images}
+                                                alt={row.name}
+                                                sx={{ width: 50, height: 50, mx: 'auto' }}
+                                            />
+                                        </TableCell>
+                                        <TableCell>
+                                            <Typography variant="subtitle1" fontWeight="600">
+                                                {row.name}
+                                            </Typography>
+                                        </TableCell>
+                                        <TableCell align="right">
+                                            <Typography variant="subtitle2" fontWeight="600" color="success.main">
+                                                {formatVietnameseCurrency(row.price)}
+                                            </Typography>
+                                        </TableCell>
+                                        <TableCell>
+                                            <Typography variant="body2" color="text.secondary">
+                                                {row.material}
+                                            </Typography>
+                                        </TableCell>
+                                        <TableCell>
+                                            <Typography variant="body2" color="text.secondary" sx={{
+                                                overflow: 'hidden',
+                                                textOverflow: 'ellipsis',
+                                                display: '-webkit-box',
+                                                WebkitLineClamp: 2,
+                                                WebkitBoxOrient: 'vertical',
+                                            }}>
+                                                {row.description || 'Không có mô tả'}
+                                            </Typography>
+                                        </TableCell>
+                                        <TableCell align="center">
+                                            <Stack direction="row" spacing={1} justifyContent="center">
+                                                <Tooltip title="Chỉnh sửa" TransitionComponent={Fade}>
+                                                    <IconButton
+                                                        onClick={() => handleOpenForm({
+                                                            ...row,
+                                                            categoryId: row.category.id,
+                                                            supplierId: row.supplier.id,
+                                                        })}
+                                                        sx={{ 
+                                                            color: 'primary.main',
+                                                            '&:hover': { 
+                                                                backgroundColor: 'primary.light',
+                                                                color: 'white'
+                                                            }
+                                                        }}
+                                                    >
+                                                        <EditIcon />
+                                                    </IconButton>
+                                                </Tooltip>
+                                                <Tooltip title="Xóa" TransitionComponent={Fade}>
+                                                    <IconButton
+                                                        onClick={() => handleDelete(row.id)}
+                                                        sx={{ 
+                                                            color: 'error.main',
+                                                            '&:hover': { 
+                                                                backgroundColor: 'error.light',
+                                                                color: 'white'
+                                                            }
+                                                        }}
+                                                    >
+                                                        <DeleteIcon />
+                                                    </IconButton>
+                                                </Tooltip>
+                                                <Tooltip title="Xem chi tiết" TransitionComponent={Fade}>
+                                                    <IconButton
+                                                        onClick={() => handleOpenDetail(row)}
+                                                        sx={{ 
+                                                            color: 'info.main',
+                                                            '&:hover': { 
+                                                                backgroundColor: 'info.light',
+                                                                color: 'white'
+                                                            }
+                                                        }}
+                                                    >
+                                                        <InfoIcon />
+                                                    </IconButton>
+                                                </Tooltip>
+                                            </Stack>
+                                        </TableCell>
                                     </TableRow>
-                                );
-                            })}
+                                ))
+                            )}
                         </TableBody>
                     </Table>
                 </TableContainer>
                 <TablePagination
-                    rowsPerPageOptions={[5, 10, 25, 100]}
+                    rowsPerPageOptions={[5, 10, 25, 50]}
                     component="div"
                     count={count}
                     rowsPerPage={rowsPerPage}
                     page={page}
                     onPageChange={handleChangePage}
                     onRowsPerPageChange={handleChangeRowsPerPage}
+                    sx={{
+                        borderTop: '1px solid #e0e0e0',
+                        backgroundColor: '#fafafa'
+                    }}
                 />
-            </Grid>
-        </Grid>
+            </Paper>
+        </Box>
     );
 }
 
-export default ProductPage
+export default ProductPage;

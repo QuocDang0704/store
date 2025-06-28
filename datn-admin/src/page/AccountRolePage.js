@@ -6,10 +6,17 @@ import {
     FormControlLabel,
     Grid,
     IconButton,
-    Modal,
+    Dialog,
+    DialogTitle,
+    DialogContent,
+    DialogActions,
     Table,
     TextField,
     Typography,
+    Paper,
+    Stack,
+    Tooltip,
+    Fade
 } from "@mui/material";
 import TableBody from "@mui/material/TableBody";
 import TableCell from "@mui/material/TableCell";
@@ -18,27 +25,23 @@ import TableHead from "@mui/material/TableHead";
 import TablePagination from "@mui/material/TablePagination";
 import TableRow from "@mui/material/TableRow";
 import { Fragment, useEffect, useState } from "react";
-import SizeService from '../service/SizeService';
-import { AddCircleOutline, Delete, Edit } from '@mui/icons-material';
+import { Edit as EditIcon, Delete as DeleteIcon, Security as RoleIcon } from '@mui/icons-material';
 import Loading from '../utils/Loading';
 import { toast } from 'react-toastify';
 import UserService from '../service/UserService';
 import { useNavigate } from 'react-router-dom';
 import RoleService from '../service/RoleService';
-import { set } from 'date-fns';
-import { se, tr } from 'date-fns/locale';
 import HandleError from '../utils/HandleError';
 
-
 const columns = [
-    { id: "STT", label: "STT", minWidth: 50 },
-    { id: "userName", label: "Tên đăng nhập ", minWidth: 100 },
+    { id: "STT", label: "STT", minWidth: 80, align: 'center' },
+    { id: "userName", label: "Tên đăng nhập ", minWidth: 120 },
     { id: "firstName", label: "Họ", minWidth: 100 },
     { id: "lastName", label: "Tên", minWidth: 100 },
-    { id: "email", label: "Email", minWidth: 100 },
-    { id: "phone", label: "SĐT", minWidth: 100 },
+    { id: "email", label: "Email", minWidth: 150 },
+    { id: "phone", label: "SĐT", minWidth: 120 },
     { id: "gender", label: "Giới tính", minWidth: 100 },
-    { id: "action", label: "Thao tác", minWidth: 100 },
+    { id: "action", label: "Thao tác", minWidth: 150, align: 'center' },
 ];
 function AccountRolePage() {
     const navigate = useNavigate();
@@ -49,11 +52,12 @@ function AccountRolePage() {
     const [open, setOpen] = useState(false);
     const [listRole, setListRole] = useState([]);
     const [item, setItem] = useState({});
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
     useEffect(() => {
         setIsLoading(true);
         fetchData();
-    }, []);
+    }, [page, rowsPerPage]);
 
     const fetchData = async () => {
         try {
@@ -61,7 +65,6 @@ function AccountRolePage() {
                 page: 0,
             });
             setListRole(resRole?.response?.content);
-
             const res = await UserService.getAllUser({
                 page: page,
                 size: rowsPerPage,
@@ -81,7 +84,6 @@ function AccountRolePage() {
     };
 
     const handleDelete = async (id) => {
-        // confirm xóa
         if (!window.confirm('Bạn có chắc chắn muốn xóa?')) {
             return;
         }
@@ -110,139 +112,136 @@ function AccountRolePage() {
         setPage(0);
     };
 
+    const handleOpenForm = (user) => {
+        setItem(user);
+        setOpen(true);
+    };
+    const handleCloseForm = () => {
+        setItem({});
+        setOpen(false);
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
-        console.log(item);
         try {
-            setIsLoading(true);
+            setIsSubmitting(true);
             const res = await UserService.updateUser(item);
             if (res.code === '0') {
                 toast.success('Cập nhật thành công');
-                setOpen(false);
+                handleCloseForm();
                 fetchData();
             } else {
                 toast.error('Cập nhật thất bại');
             }
-            setOpen(false);
         } catch (error) {
             HandleError.component(error, navigate);
         } finally {
-            setIsLoading(false);
+            setIsSubmitting(false);
         }
     }
     const checkIdExists = (id, jsonArray) => {
         return jsonArray?.some(item => item.id == id);
     }
     return (
-        <Grid container spacing={3}>
+        <Box sx={{ p: 3, backgroundColor: '#f5f5f5', minHeight: '100vh' }}>
             <Loading isLoading={isLoading} />
-            <Modal
-                keepMounted
-                open={open}
-                onClose={() => {
-                    setOpen(false);
-                }}
-                aria-labelledby='keep-mounted-modal-title'
-                aria-describedby='keep-mounted-modal-description'
-            >
-                <Box
-                    sx={{
-                        position: 'absolute',
-                        top: '50%',
-                        left: '50%',
-                        transform: 'translate(-50%, -50%)',
-                        width: 600,
-                        bgcolor: 'background.paper',
-                        // border: '1px solid #000',
-                        boxShadow: 24,
-                        p: 4,
-                        maxHeight: 'calc(100vh - 100px)', // Giới hạn chiều cao của modal và trừ điều chỉnh cho tiêu đề và nút đóng
-                        minHeight: 'calc(50vh - 50px)',
-                        overflowY: 'hidden', // Ẩn thanh cuộn mặc định
-                        '&::-webkit-scrollbar': {
-                            width: '3px',
-                        },
-                        '&::-webkit-scrollbar-thumb': {
-                            backgroundColor: '#888',
-                            borderRadius: '3px',
-                        },
-                        '&:hover': {
-                            overflowY: 'auto', // Hiển thị thanh cuộn khi di chuột vào modal
-                        },
-                    }}
-                >
-                    {item && (
-                        <Grid container spacing={2}>
-                            <Grid item md={12}>
-                                <Typography variant="h5" fontWeight="bold">
-                                    Phân quyền
-                                </Typography>
-                            </Grid>
-
-                            <Grid item md={12} sx={{ marginTop: 5, }}>
-                                <Typography variant="h6" fontWeight="bold">
-                                    Tên tài khoản: {item.userName}
-                                </Typography>
-                            </Grid>
-                            <Grid container spacing={2} sx={{ marginLeft: 5 }}
-                                component={'form'}
-                                onSubmit={handleSubmit}
-                            >
-                                {listRole.map((role) => (
-                                    <Grid item md={12} key={role.id}>
-                                        <FormControlLabel
-                                            control={
-                                                <Checkbox
-                                                    name={role.name}
-                                                    checked={checkIdExists(role.id, item.role) || false}
-                                                    onChange={() => {
-                                                        if (checkIdExists(role.id, item.role)) {
-                                                            item.role = item.role.filter((item) => item.id !== role.id);
-                                                        } else {
-                                                            item.role.push(role);
-                                                        }
-                                                        setItem({ ...item });
-                                                    }}
-                                                    color="default"
-                                                />
-                                            }
-                                            label={role.description}
-                                        />
-                                    </Grid>
-                                ))}
-
-                                <Grid item md={12}>
-                                    <Button variant="outlined" color="primary" type='submit'>
-                                        Lưu
-                                    </Button>
-                                </Grid>
-                            </Grid>
-                        </Grid>
-                    )}
+            {/* Header */}
+            <Paper elevation={2} sx={{ p: 3, mb: 3, borderRadius: 2 }}>
+                <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                    <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+                        <RoleIcon sx={{ fontSize: 32, color: 'primary.main' }} />
+                        <Typography variant="h4" fontWeight="bold" color="primary">
+                            Phân quyền tài khoản
+                        </Typography>
+                    </Box>
                 </Box>
-            </Modal>
+            </Paper>
 
-            <Grid item xs={12} sx={{ display: "flex", justifyContent: "space-between", margin: '0 0 5px 0' }}>
-                <Typography variant="h4" fontWeight="bold">
-                    Phân quyền tài khoản
-                </Typography>
-                {/* <IconButton onClick={() => {
-                    navigate('/account/role');
-                }}>
-                    <AddCircleOutline /> Phân quyền
-                </IconButton> */}
-            </Grid>
+            {/* Role Form Dialog */}
+            <Dialog
+                open={open}
+                onClose={handleCloseForm}
+                maxWidth="sm"
+                fullWidth
+                PaperProps={{ sx: { borderRadius: 3 } }}
+            >
+                <DialogTitle sx={{ pb: 1, display: 'flex', alignItems: 'center', gap: 1, borderBottom: '1px solid #e0e0e0' }}>
+                    <RoleIcon color="primary" />
+                    <Typography variant="h6" fontWeight="bold">
+                        Phân quyền
+                    </Typography>
+                </DialogTitle>
+                <form onSubmit={handleSubmit}>
+                    <DialogContent sx={{ pt: 3 }}>
+                        <Typography variant="subtitle1" fontWeight="bold" sx={{ mb: 2 }}>
+                            Tên tài khoản: {item.userName}
+                        </Typography>
+                        <Grid container spacing={2}>
+                            {listRole.map((role) => (
+                                <Grid item xs={12} key={role.id}>
+                                    <FormControlLabel
+                                        control={
+                                            <Checkbox
+                                                name={role.name}
+                                                checked={checkIdExists(role.id, item.role) || false}
+                                                onChange={() => {
+                                                    if (checkIdExists(role.id, item.role)) {
+                                                        item.role = item.role.filter((i) => i.id !== role.id);
+                                                    } else {
+                                                        item.role.push(role);
+                                                    }
+                                                    setItem({ ...item });
+                                                }}
+                                                color="default"
+                                            />
+                                        }
+                                        label={role.description}
+                                    />
+                                </Grid>
+                            ))}
+                        </Grid>
+                    </DialogContent>
+                    <DialogActions sx={{ p: 3, pt: 1 }}>
+                        <Button
+                            onClick={handleCloseForm}
+                            variant="outlined"
+                            sx={{ borderRadius: 2, px: 3 }}
+                        >
+                            Hủy
+                        </Button>
+                        <Button
+                            type="submit"
+                            variant="contained"
+                            disabled={isSubmitting}
+                            sx={{ borderRadius: 2, px: 3, fontWeight: 600 }}
+                        >
+                            {isSubmitting ? 'Đang xử lý...' : 'Lưu'}
+                        </Button>
+                    </DialogActions>
+                </form>
+            </Dialog>
 
-            {/* table */}
-            <Grid item xs={12} className="my-4 p-2 border rounded">
-                <TableContainer >
-                    <Table stickyHeader aria-label="sticky table">
+            {/* Data Table */}
+            <Paper elevation={2} sx={{ borderRadius: 2, overflow: 'hidden' }}>
+                <Box sx={{ p: 3, borderBottom: '1px solid #e0e0e0', backgroundColor: '#fafafa' }}>
+                    <Typography variant="h6" fontWeight="bold" color="text.secondary">
+                        Danh sách tài khoản ({data.length} tài khoản)
+                    </Typography>
+                </Box>
+                <TableContainer sx={{ maxHeight: 600 }}>
+                    <Table stickyHeader>
                         <TableHead>
-                            <TableRow>
+                            <TableRow sx={{ backgroundColor: '#f5f5f5' }}>
                                 {columns.map((column) => (
                                     <TableCell
                                         key={column.id}
-                                        style={{ minWidth: column.minWidth }}
+                                        align={column.align || 'left'}
+                                        sx={{
+                                            fontWeight: 700,
+                                            backgroundColor: '#f5f5f5',
+                                            color: 'text.primary',
+                                            borderBottom: '2px solid #e0e0e0'
+                                        }}
                                     >
                                         {column.label}
                                     </TableCell>
@@ -250,58 +249,102 @@ function AccountRolePage() {
                             </TableRow>
                         </TableHead>
                         <TableBody>
-                            {/* rows */}
-                            {data.map((row, index) => {
-                                return (
-                                    <TableRow hover role="checkbox" tabIndex={-1} key={row.id}>
-                                        {columns.map((column) => {
-                                            const value = row[column.id];
-                                            return (
-                                                <TableCell key={column.id}>
-                                                    {column.id === "STT" ? index + 1 : ""}
-                                                    {column.id === "action" ? (
-                                                        <Fragment>
-                                                            <IconButton
-                                                                size='small'
-                                                                onClick={() => {
-                                                                    console.log(row, checkIdExists(1, row.role));
-                                                                    setItem(row);
-                                                                    setOpen(true);
-                                                                }}
-                                                            >
-                                                                <Edit />
-                                                            </IconButton>
-                                                            <IconButton
-                                                                size='small'
-                                                                onClick={() => handleDelete(row.id)}
-                                                            >
-                                                                <Delete />
-                                                            </IconButton>
-                                                        </Fragment>
-                                                    ) : (
-                                                        value
-                                                    )}
-                                                </TableCell>
-                                            );
-                                        })}
+                            {data.length === 0 ? (
+                                <TableRow>
+                                    <TableCell colSpan={8} align="center" sx={{ py: 4 }}>
+                                        <Box sx={{ textAlign: 'center' }}>
+                                            <RoleIcon sx={{ fontSize: 48, color: 'text.disabled', mb: 2 }} />
+                                            <Typography variant="h6" color="text.secondary">
+                                                Chưa có tài khoản nào
+                                            </Typography>
+                                            <Typography variant="body2" color="text.secondary">
+                                                Hãy thêm tài khoản đầu tiên để bắt đầu
+                                            </Typography>
+                                        </Box>
+                                    </TableCell>
+                                </TableRow>
+                            ) : (
+                                data.map((row, index) => (
+                                    <TableRow 
+                                        hover 
+                                        key={row.id}
+                                        sx={{ '&:hover': { backgroundColor: '#f8f9fa' } }}
+                                    >
+                                        <TableCell align="center" sx={{ fontWeight: 600 }}>
+                                            {page * rowsPerPage + index + 1}
+                                        </TableCell>
+                                        <TableCell>
+                                            <Typography variant="subtitle1" fontWeight="600">
+                                                {row.userName}
+                                            </Typography>
+                                        </TableCell>
+                                        <TableCell>
+                                            <Typography variant="body2" color="text.secondary">
+                                                {row.firstName}
+                                            </Typography>
+                                        </TableCell>
+                                        <TableCell>
+                                            <Typography variant="body2" color="text.secondary">
+                                                {row.lastName}
+                                            </Typography>
+                                        </TableCell>
+                                        <TableCell>
+                                            <Typography variant="body2" color="text.secondary">
+                                                {row.email}
+                                            </Typography>
+                                        </TableCell>
+                                        <TableCell>
+                                            <Typography variant="body2" color="text.secondary">
+                                                {row.phone}
+                                            </Typography>
+                                        </TableCell>
+                                        <TableCell>
+                                            <Typography variant="body2" color="text.secondary">
+                                                {row.gender}
+                                            </Typography>
+                                        </TableCell>
+                                        <TableCell align="center">
+                                            <Stack direction="row" spacing={1} justifyContent="center">
+                                                <Tooltip title="Phân quyền" TransitionComponent={Fade}>
+                                                    <IconButton
+                                                        onClick={() => handleOpenForm(row)}
+                                                        sx={{ color: 'primary.main', '&:hover': { backgroundColor: 'primary.light', color: 'white' } }}
+                                                    >
+                                                        <EditIcon />
+                                                    </IconButton>
+                                                </Tooltip>
+                                                <Tooltip title="Xóa" TransitionComponent={Fade}>
+                                                    <IconButton
+                                                        onClick={() => handleDelete(row.id)}
+                                                        sx={{ color: 'error.main', '&:hover': { backgroundColor: 'error.light', color: 'white' } }}
+                                                    >
+                                                        <DeleteIcon />
+                                                    </IconButton>
+                                                </Tooltip>
+                                            </Stack>
+                                        </TableCell>
                                     </TableRow>
-                                );
-                            })}
+                                ))
+                            )}
                         </TableBody>
                     </Table>
                 </TableContainer>
                 <TablePagination
-                    rowsPerPageOptions={[5, 10, 25, 100]}
+                    rowsPerPageOptions={[5, 10, 25, 50]}
                     component="div"
                     count={data.length}
                     rowsPerPage={rowsPerPage}
                     page={page}
                     onPageChange={handleChangePage}
                     onRowsPerPageChange={handleChangeRowsPerPage}
+                    sx={{
+                        borderTop: '1px solid #e0e0e0',
+                        backgroundColor: '#fafafa'
+                    }}
                 />
-            </Grid>
-        </Grid>
+            </Paper>
+        </Box>
     );
 }
 
-export default AccountRolePage
+export default AccountRolePage;

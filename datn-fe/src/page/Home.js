@@ -124,13 +124,37 @@ const Home = () => {
       <Banner />
       <Grid container spacing={2} marginTop={3}>
         <Grid item xs={12} sm={2}>
-          <Paper elevation={3} sx={{ p: 2 }}>
+          <Paper 
+            elevation={3} 
+            sx={{ 
+              p: 3,
+              borderRadius: '12px',
+              border: '1px solid #e0e0e0',
+              backgroundColor: '#ffffff',
+              boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
+            }}
+          >
             <form onSubmit={handleSearch}>
               <div className='sidebar col-md-3 col-sm-5'>
                 <div className='sidebar-filter margin-bottom-25'>
-                  <Typography variant='h6' style={{ fontWeight: 'bold', fontSize: '1.5rem' }}>Tìm kiếm sản phẩm</Typography>
-                  <div style={{ marginTop: '15px' }}>
-                    <label style={{ fontWeight: 'bold', fontSize: '1.2rem' }}>Tên sản phẩm </label>
+                  <Typography 
+                    variant='h6' 
+                    sx={{ 
+                      fontWeight: 'bold', 
+                      fontSize: '23px',
+                      color: '#1976d2',
+                      textAlign: 'center',
+                      marginBottom: '20px',
+                      padding: '10px',
+                      backgroundColor: '#f5f5f5',
+                      borderRadius: '8px',
+                      border: '2px solid #e3f2fd'
+                    }}
+                  >
+                    🔍 Tìm kiếm sản phẩm
+                  </Typography>
+                  <div style={{ marginTop: '20px' }}>
+                    <label style={{ fontWeight: 'bold', fontSize: '1.2rem', color: '#333', marginBottom: '8px', display: 'block' }}>Tên sản phẩm</label>
                     <TextField
                       name='searchName'
                       id='searchName'
@@ -138,6 +162,14 @@ const Home = () => {
                       variant='outlined'
                       value={search?.name || ''}
                       fullWidth
+                      sx={{
+                        '& .MuiOutlinedInput-root': {
+                          borderRadius: '8px',
+                          '&:hover fieldset': {
+                            borderColor: '#1976d2',
+                          },
+                        },
+                      }}
                       onChange={(e) => {
                         const value = e.target.value;
                         document
@@ -147,16 +179,24 @@ const Home = () => {
                       }}
                     />
                   </div>
-                  <div>
-                    <label style={{ fontWeight: 'bold', fontSize: '1.2rem' }}>Khoảng giá từ</label>
+                  <div style={{ marginTop: '20px' }}>
+                    <label style={{ fontWeight: 'bold', fontSize: '1.2rem', color: '#333', marginBottom: '8px', display: 'block' }}>Khoảng giá từ</label>
                     <TextField
                       name='minPrice'
                       id='minPrice'
                       type='text'
-                      placeholder='Nhập giá 1'
+                      placeholder='Nhập giá tối thiểu'
                       variant='outlined'
                       value={search?.minPrice || ''}
                       fullWidth
+                      sx={{
+                        '& .MuiOutlinedInput-root': {
+                          borderRadius: '8px',
+                          '&:hover fieldset': {
+                            borderColor: '#1976d2',
+                          },
+                        },
+                      }}
                       onChange={(e) => {
                         const value = e.target.value.replace(/\D/g, '');
                         const formattedValue = formatVietnameseCurrency(value);
@@ -166,16 +206,24 @@ const Home = () => {
                       }}
                     />
                   </div>
-                  <div>
-                    <label style={{ fontWeight: 'bold', fontSize: '1.2rem' }}>Khoảng giá đến</label>
+                  <div style={{ marginTop: '20px' }}>
+                    <label style={{ fontWeight: 'bold', fontSize: '1.2rem', color: '#333', marginBottom: '8px', display: 'block' }}>Khoảng giá đến</label>
                     <TextField
                       name='maxPrice'
                       id='maxPrice'
                       type='text'
-                      placeholder='Nhập giá 2'
+                      placeholder='Nhập giá tối đa'
                       variant='outlined'
                       value={search?.maxPrice || ''}
                       fullWidth
+                      sx={{
+                        '& .MuiOutlinedInput-root': {
+                          borderRadius: '8px',
+                          '&:hover fieldset': {
+                            borderColor: '#1976d2',
+                          },
+                        },
+                      }}
                       onChange={(e) => {
                         const value = e.target.value.replace(/\D/g, '');
                         const formattedValue = formatVietnameseCurrency(value);
@@ -185,8 +233,8 @@ const Home = () => {
                       }}
                     />
                   </div>
-                  <div>
-                    <label style={{ fontWeight: 'bold', fontSize: '1.2rem' }}>Danh mục</label>
+                  <div style={{ marginTop: '20px' }}>
+                    <label style={{ fontWeight: 'bold', fontSize: '1.2rem', color: '#333', marginBottom: '8px', display: 'block' }}>Danh mục</label>
                     <FormControl fullWidth variant="outlined" margin="normal">
                       <Select
                         labelId="category-label"
@@ -194,6 +242,14 @@ const Home = () => {
                         name="categoryId"
                         label="Danh mục"
                         value={search?.categoryId || ''}
+                        sx={{
+                          '& .MuiOutlinedInput-root': {
+                            borderRadius: '8px',
+                            '&:hover fieldset': {
+                              borderColor: '#1976d2',
+                            },
+                          },
+                        }}
                         onChange={(e) => {
                           const value = e.target.value;
                           document
@@ -203,7 +259,7 @@ const Home = () => {
                         }}
                       >
                         <MenuItem value=" ">
-                          <em>          </em>
+                          <em>Tất cả danh mục</em>
                         </MenuItem>
                         {listCategory.map((category) => (
                           <MenuItem key={category.id} value={category.id}>
@@ -213,11 +269,11 @@ const Home = () => {
                       </Select>
                     </FormControl>
                   </div>
-                  <div>
-                    <label style={{ fontWeight: 'bold', fontSize: '1.2rem' }}>Nhà cung cấp</label>
+                  <div style={{ marginTop: '20px' }}>
+                    <label style={{ fontWeight: 'bold', fontSize: '1.2rem', color: '#333', marginBottom: '8px', display: 'block' }}>Nhà cung cấp</label>
                     <FormControl fullWidth variant="outlined" margin="normal">
                       <Select
-                        labelId="category-label"
+                        labelId="supplier-label"
                         id="supplierId"
                         name="supplierId"
                         label="Nhà cung cấp"
@@ -229,9 +285,17 @@ const Home = () => {
                             .setAttribute('value', value);
                           setSearch({ ...search, supplierId: value });
                         }}
+                        sx={{
+                          '& .MuiOutlinedInput-root': {
+                            borderRadius: '8px',
+                            '&:hover fieldset': {
+                              borderColor: '#1976d2',
+                            },
+                          },
+                        }}
                       >
                         <MenuItem value=" ">
-                          <em>          </em>
+                          <em>Tất cả nhà cung cấp</em>
                         </MenuItem>
                         {listSupplier.map((supplier) => (
                           <MenuItem key={supplier.id} value={supplier.id}>
@@ -242,31 +306,63 @@ const Home = () => {
                     </FormControl>
                   </div>
 
-                  <Button type='submit' variant='contained' color='primary'
-                    sx={{ marginTop: 2 }}>
-                    Tìm kiếm
-                  </Button>
-                  {/* thêm bỏ lọc */}
-                  <Button
-                    variant='contained'
-                    color='secondary'
-                    sx={{ marginTop: 2 }}
-                    onClick={() => {
-                      setSearch({
-                        name: '',
-                        minPrice: '',
-                        maxPrice: '',
-                      });
-                      document.getElementById('searchName').value = '';
-                      document.getElementById('minPrice').value = '';
-                      document.getElementById('maxPrice').value = '';
-                      document
-                        .getElementById('categoryId')
-                        .setAttribute('value', " ");
-                    }}
-                  >
-                    Bỏ lọc
-                  </Button>
+                  <Box sx={{ marginTop: '30px', display: 'flex', flexDirection: 'column', gap: 2 }}>
+                    <Button 
+                      type='submit' 
+                      variant='contained' 
+                      color='primary'
+                      sx={{ 
+                        borderRadius: '8px',
+                        padding: '12px 24px',
+                        fontSize: '1rem',
+                        fontWeight: 'bold',
+                        textTransform: 'none',
+                        boxShadow: '0 4px 8px rgba(25, 118, 210, 0.3)',
+                        '&:hover': {
+                          boxShadow: '0 6px 12px rgba(25, 118, 210, 0.4)',
+                          transform: 'translateY(-1px)',
+                        },
+                        transition: 'all 0.3s ease'
+                      }}
+                    >
+                      🔍 Tìm kiếm
+                    </Button>
+                    
+                    <Button
+                      variant='outlined'
+                      color='secondary'
+                      sx={{ 
+                        borderRadius: '8px',
+                        padding: '12px 24px',
+                        fontSize: '1rem',
+                        fontWeight: 'bold',
+                        textTransform: 'none',
+                        borderWidth: '2px',
+                        '&:hover': {
+                          borderWidth: '2px',
+                          transform: 'translateY(-1px)',
+                          boxShadow: '0 4px 8px rgba(156, 39, 176, 0.3)',
+                        },
+                        transition: 'all 0.3s ease'
+                      }}
+                      onClick={() => {
+                        setSearch({
+                          name: '',
+                          minPrice: '',
+                          maxPrice: '',
+                          categoryId: '',
+                          supplierId: '',
+                        });
+                        document.getElementById('searchName').value = '';
+                        document.getElementById('minPrice').value = '';
+                        document.getElementById('maxPrice').value = '';
+                        document.getElementById('categoryId').setAttribute('value', " ");
+                        document.getElementById('supplierId').setAttribute('value', " ");
+                      }}
+                    >
+                      🗑️ Bỏ lọc
+                    </Button>
+                  </Box>
                 </div>
               </div>
             </form>
@@ -275,31 +371,57 @@ const Home = () => {
         <Grid item xs={12} sm={10}>
           <Stack
             direction='row'
-            spacing={1}
+            spacing={2}
             justifyContent='flex-start'
-            sx={{ marginBottom: 1 }}
+            sx={{ marginBottom: 2 }}
           >
             <Button
               variant='outlined'
               color='info'
-              sx={{ borderRadius: '20px' }}
+              sx={{ 
+                borderRadius: '20px',
+                padding: '8px 16px',
+                fontSize: '0.9rem',
+                fontWeight: 'bold',
+                textTransform: 'none',
+                borderWidth: '2px',
+                '&:hover': {
+                  borderWidth: '2px',
+                  transform: 'translateY(-1px)',
+                  boxShadow: '0 4px 8px rgba(3, 169, 244, 0.3)',
+                },
+                transition: 'all 0.3s ease'
+              }}
               endIcon={<Icon as={ArrowUpward} />}
               onClick={() => {
                 setSortType('price,asc');
               }}
             >
-              Sắp xếp theo giá tăng dần
+              Giá tăng dần
             </Button>
             <Button
               variant='outlined'
               color='secondary'
-              sx={{ borderRadius: '20px' }}
+              sx={{ 
+                borderRadius: '20px',
+                padding: '8px 16px',
+                fontSize: '0.9rem',
+                fontWeight: 'bold',
+                textTransform: 'none',
+                borderWidth: '2px',
+                '&:hover': {
+                  borderWidth: '2px',
+                  transform: 'translateY(-1px)',
+                  boxShadow: '0 4px 8px rgba(156, 39, 176, 0.3)',
+                },
+                transition: 'all 0.3s ease'
+              }}
               endIcon={<Icon as={ArrowDownward} />}
               onClick={() => {
                 setSortType('price,desc');
               }}
             >
-              Sắp xếp theo giá giảm dần
+              Giá giảm dần
             </Button>
           </Stack>
           <Grid container spacing={3}>
@@ -344,41 +466,76 @@ const Home = () => {
             ))}
           </Grid>
           <Grid item xs={12} >
-            <Paper sx={{ p: 2 }}>
+            <Paper 
+              sx={{ 
+                p: 3,
+                borderRadius: '12px',
+                border: '1px solid #e0e0e0',
+                backgroundColor: '#f8f9fa',
+                marginTop: 2
+              }}
+            >
               <Stack
                 direction='row'
-                spacing={1}
-                justifyContent='flex-start'
+                spacing={2}
+                justifyContent='space-between'
+                alignItems='center'
                 sx={{ marginBottom: 1 }}
               >
                 <Grid item xs={12} md={4}>
-                  <Typography variant='body1' sx={{ textAlign: 'left' }}>
-                    <Button
-                      variant='contained'
-                      disabled={page === 1}
-                      onClick={() => setPage(page - 1)}
-                    >
-                      Trước
-                    </Button>
-                  </Typography>
+                  <Button
+                    variant='contained'
+                    disabled={page === 1}
+                    sx={{
+                      borderRadius: '8px',
+                      padding: '8px 16px',
+                      fontSize: '0.9rem',
+                      fontWeight: 'bold',
+                      textTransform: 'none',
+                      '&:hover': {
+                        transform: 'translateY(-1px)',
+                        boxShadow: '0 4px 8px rgba(25, 118, 210, 0.3)',
+                      },
+                      transition: 'all 0.3s ease'
+                    }}
+                    onClick={() => setPage(page - 1)}
+                  >
+                    ⬅️ Trước
+                  </Button>
                 </Grid>
                 <Grid item xs={12} md={4}>
-                  <Typography variant='body1' sx={{ textAlign: 'center' }}>
+                  <Typography 
+                    variant='body1' 
+                    sx={{ 
+                      textAlign: 'center',
+                      fontWeight: 'bold',
+                      color: '#1976d2',
+                      fontSize: '1.1rem'
+                    }}
+                  >
                     Trang {page} trên {Math.ceil(count / pageSize)}
                   </Typography>
                 </Grid>
-                <Grid item xs={12} md={4}
-                >
-                  <Typography
-                    variant='body1' sx={{ textAlign: 'right' }}>
-                    <Button
-                      variant='contained'
-                      disabled={page === Math.ceil(count / pageSize) || count === 0}
-                      onClick={() => setPage(page + 1)}
-                    >
-                      Tiếp
-                    </Button>
-                  </Typography>
+                <Grid item xs={12} md={4}>
+                  <Button
+                    variant='contained'
+                    disabled={page === Math.ceil(count / pageSize) || count === 0}
+                    sx={{
+                      borderRadius: '8px',
+                      padding: '8px 16px',
+                      fontSize: '0.9rem',
+                      fontWeight: 'bold',
+                      textTransform: 'none',
+                      '&:hover': {
+                        transform: 'translateY(-1px)',
+                        boxShadow: '0 4px 8px rgba(25, 118, 210, 0.3)',
+                      },
+                      transition: 'all 0.3s ease'
+                    }}
+                    onClick={() => setPage(page + 1)}
+                  >
+                    Tiếp ➡️
+                  </Button>
                 </Grid>
               </Stack>
             </Paper>

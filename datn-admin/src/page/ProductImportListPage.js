@@ -9,6 +9,19 @@ import {
     Modal,
     Table,
     Typography,
+    Paper,
+    Card,
+    CardContent,
+    Divider,
+    Chip,
+    Dialog,
+    DialogTitle,
+    DialogContent,
+    DialogActions,
+    Alert,
+    Stack,
+    Tooltip,
+    Fade,
 } from "@mui/material";
 import TableBody from "@mui/material/TableBody";
 import TableCell from "@mui/material/TableCell";
@@ -17,7 +30,20 @@ import TableHead from "@mui/material/TableHead";
 import TablePagination from "@mui/material/TablePagination";
 import TableRow from "@mui/material/TableRow";
 import { Fragment, useEffect, useState } from "react";
-import { AddCircleOutline, Delete, Details, Edit } from '@mui/icons-material';
+import {
+    Add as AddIcon,
+    Delete as DeleteIcon,
+    Visibility as DetailsIcon,
+    Edit as EditIcon,
+    Inventory as ImportIcon,
+    Person as PersonIcon,
+    Work as RoleIcon,
+    Schedule as DateIcon,
+    AttachMoney as PriceIcon,
+    Visibility as ViewIcon,
+    List as ListIcon,
+    ArrowBack as ArrowBackIcon
+} from '@mui/icons-material';
 import Loading from '../utils/Loading';
 import { toast } from 'react-toastify';
 import ProductService from '../service/ProductService';
@@ -29,17 +55,15 @@ import { useNavigate } from 'react-router-dom';
 import WarehouseEntryService from '../service/WarehouseEntryService';
 import { format } from 'date-fns';
 import ProductImportListItem from '../components/ProductImportListItem';
-import { ro, se } from 'date-fns/locale';
 import HandleError from '../utils/HandleError';
 
-
 const columns = [
-    { id: "STT", label: "STT", minWidth: 10 },
-    { id: "nameStaff", label: "Người tạo", minWidth: 100 },
-    { id: "roleStaff", label: "Chức vụ", minWidth: 100 },
-    { id: "createdDate", label: "Thời gian tạo", minWidth: 100 },
-    { id: "totalPrice", label: "Tổng giá trị đơn nhập", minWidth: 100 },
-    { id: "action", label: "Chi tiết", minWidth: 150 },
+    { id: "STT", label: "STT", minWidth: 80, align: 'center' },
+    { id: "nameStaff", label: "Người tạo", minWidth: 180 },
+    { id: "roleStaff", label: "Chức vụ", minWidth: 150 },
+    { id: "createdDate", label: "Thời gian tạo", minWidth: 180 },
+    { id: "totalPrice", label: "Tổng giá trị", minWidth: 150, align: 'right' },
+    { id: "action", label: "Chi tiết", minWidth: 120, align: 'center' },
 ];
 
 function ProductImportListPage() {
@@ -71,6 +95,7 @@ function ProductImportListPage() {
                     nameStaff: item?.user?.userName,
                     roleStaff: role,
                     totalPrice: formatVietnameseCurrency(totalPrice),
+                    createdDate: format(new Date(item.createdDate), 'dd/MM/yyyy HH:mm'),
                     ...item,
                 }
             });
@@ -85,10 +110,10 @@ function ProductImportListPage() {
     };
 
     const formatVietnameseCurrency = (value) => {
-        const formattedValue = value
-            .toString()
-            .replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-        return formattedValue;
+        return new Intl.NumberFormat('vi-VN', {
+            style: 'currency',
+            currency: 'VND'
+        }).format(value);
     };
 
     const handleOpen = () => {
@@ -107,9 +132,10 @@ function ProductImportListPage() {
         setRowsPerPage(+event.target.value);
         setPage(0);
     };
+
     const handleViewDetail = async (row) => {
         setOpen(true);
-        
+
         const list = row?.warehouseEntryDetails?.map((item, index) => {
             return {
                 id: item?.id,
@@ -121,12 +147,65 @@ function ProductImportListPage() {
             }
         });
         setListProductDetail(list);
-        console.log(list);
     }
 
     return (
-        <Grid container spacing={3}>
+        <Box sx={{ p: 3, backgroundColor: '#f5f5f5', minHeight: '100vh' }}>
             <Loading isLoading={isLoading} />
+
+            {/* Header */}
+            <Paper elevation={2} sx={{ p: 3, mb: 3, borderRadius: 2 }}>
+                <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                    <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+                        <ImportIcon sx={{ fontSize: 32, color: 'primary.main' }} />
+                        <Typography variant="h4" fontWeight="bold" color="primary">
+                            Quản lý Nhập hàng
+                        </Typography>
+                    </Box>
+                    <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                        <Chip
+                            label={`${count} đơn nhập`}
+                            color="primary"
+                            variant="outlined"
+                            sx={{ fontWeight: 600 }}
+                        />
+                    </Box>
+                </Box>
+                <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mt: 2 }}>
+                    <Button
+                        variant="outlined"
+                        startIcon={<ArrowBackIcon />}
+                        onClick={() => navigate(-1)}
+                        sx={{
+                            borderRadius: 2,
+                            px: 3,
+                            textTransform: 'none',
+                            fontWeight: 600
+                        }}
+                    >
+                        Quay lại
+                    </Button>
+                    <Button
+                        variant="contained"
+                        startIcon={<ListIcon />}
+                        onClick={() => navigate('/product/import')}
+                        sx={{
+                            borderRadius: 2,
+                            px: 3,
+                            textTransform: 'none',
+                            fontWeight: 600,
+                            backgroundColor: 'info.main',
+                            '&:hover': {
+                                backgroundColor: 'info.dark'
+                            }
+                        }}
+                    >
+                        Nhập hàng
+                    </Button>
+                </Box>
+            </Paper>
+
+            {/* Detail Modal */}
             <Modal
                 keepMounted
                 open={open}
@@ -142,21 +221,20 @@ function ProductImportListPage() {
                         transform: 'translate(-50%, -50%)',
                         width: 900,
                         bgcolor: 'background.paper',
-                        // border: '1px solid #000',
-                        borderRadius: 5,
+                        borderRadius: 3,
                         boxShadow: 24,
                         p: 4,
-                        maxHeight: 'calc(100vh - 100px)', // Giới hạn chiều cao của modal và trừ điều chỉnh cho tiêu đề và nút đóng
-                        overflowY: 'hidden', // Ẩn thanh cuộn mặc định
+                        maxHeight: 'calc(100vh - 100px)',
+                        overflowY: 'hidden',
                         '&::-webkit-scrollbar': {
-                            width: '3px',
+                            width: '6px',
                         },
                         '&::-webkit-scrollbar-thumb': {
                             backgroundColor: '#888',
                             borderRadius: '3px',
                         },
                         '&:hover': {
-                            overflowY: 'auto', // Hiển thị thanh cuộn khi di chuột vào modal
+                            overflowY: 'auto',
                         },
                     }}
                 >
@@ -166,28 +244,28 @@ function ProductImportListPage() {
                 </Box>
             </Modal>
 
+            {/* Data Table */}
+            <Paper elevation={2} sx={{ borderRadius: 2, overflow: 'hidden' }}>
+                <Box sx={{ p: 3, borderBottom: '1px solid #e0e0e0', backgroundColor: '#fafafa' }}>
+                    <Typography variant="h6" fontWeight="bold" color="text.secondary">
+                        Danh sách đơn nhập hàng
+                    </Typography>
+                </Box>
 
-            <Grid item xs={12} sx={{ display: "flex", justifyContent: "space-between", margin: '0 0 5px 0' }}>
-                <Typography variant="h4" fontWeight="bold">
-                    Danh sách nhập hàng
-                </Typography>
-            </Grid>
-
-            <Grid item xs={12}
-                sx={{
-                    my: 4,
-                    p: 2,
-                    // border: 1,
-                    borderRadius: 1,
-                }}>
-                <TableContainer >
-                    <Table stickyHeader aria-label="sticky table">
+                <TableContainer sx={{ maxHeight: 600 }}>
+                    <Table stickyHeader>
                         <TableHead>
-                            <TableRow>
+                            <TableRow sx={{ backgroundColor: '#f5f5f5' }}>
                                 {columns.map((column) => (
                                     <TableCell
                                         key={column.id}
-                                        style={{ minWidth: column.minWidth }}
+                                        align={column.align || 'left'}
+                                        sx={{
+                                            fontWeight: 700,
+                                            backgroundColor: '#f5f5f5',
+                                            color: 'text.primary',
+                                            borderBottom: '2px solid #e0e0e0'
+                                        }}
                                     >
                                         {column.label}
                                     </TableCell>
@@ -195,54 +273,107 @@ function ProductImportListPage() {
                             </TableRow>
                         </TableHead>
                         <TableBody>
-                            {data?.map((row, index) => {
-                                return (
-                                    <TableRow hover
-                                        role="checkbox" tabIndex={-1} key={row.id}
+                            {data.length === 0 ? (
+                                <TableRow>
+                                    <TableCell colSpan={6} align="center" sx={{ py: 4 }}>
+                                        <Box sx={{ textAlign: 'center' }}>
+                                            <ImportIcon sx={{ fontSize: 48, color: 'text.disabled', mb: 2 }} />
+                                            <Typography variant="h6" color="text.secondary">
+                                                Chưa có đơn nhập hàng nào
+                                            </Typography>
+                                            <Typography variant="body2" color="text.secondary">
+                                                Hãy tạo đơn nhập hàng đầu tiên để bắt đầu
+                                            </Typography>
+                                        </Box>
+                                    </TableCell>
+                                </TableRow>
+                            ) : (
+                                data?.map((row, index) => (
+                                    <TableRow
+                                        hover
+                                        key={row.id}
+                                        sx={{
+                                            '&:hover': {
+                                                backgroundColor: '#f8f9fa'
+                                            }
+                                        }}
                                     >
-                                        {columns.map((column) => {
-                                            const value = row[column.id];
-                                            return (
-                                                <TableCell key={column.id}
+                                        <TableCell align="center" sx={{ fontWeight: 600 }}>
+                                            {page * rowsPerPage + index + 1}
+                                        </TableCell>
+                                        <TableCell>
+                                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                                <PersonIcon sx={{ fontSize: 16, color: 'text.secondary' }} />
+                                                <Typography variant="subtitle1" fontWeight="600">
+                                                    {row.nameStaff}
+                                                </Typography>
+                                            </Box>
+                                        </TableCell>
+                                        <TableCell>
+                                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                                <RoleIcon sx={{ fontSize: 16, color: 'text.secondary' }} />
+                                                <Typography variant="body2" color="text.secondary">
+                                                    {row.roleStaff}
+                                                </Typography>
+                                            </Box>
+                                        </TableCell>
+                                        <TableCell>
+                                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                                <DateIcon sx={{ fontSize: 16, color: 'text.secondary' }} />
+                                                <Typography variant="body2" color="text.secondary">
+                                                    {row.createdDate}
+                                                </Typography>
+                                            </Box>
+                                        </TableCell>
+                                        <TableCell align="right">
+                                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, justifyContent: 'flex-end' }}>
+                                                <PriceIcon sx={{ fontSize: 16, color: 'success.main' }} />
+                                                <Typography variant="subtitle2" fontWeight="600" color="success.main">
+                                                    {row.totalPrice}
+                                                </Typography>
+                                            </Box>
+                                        </TableCell>
+                                        <TableCell align="center">
+                                            <Tooltip title="Xem chi tiết" TransitionComponent={Fade}>
+                                                <IconButton
+                                                    onClick={() => handleViewDetail(row)}
+                                                    sx={{
+                                                        color: 'primary.main',
+                                                        '&:hover': {
+                                                            backgroundColor: 'primary.light',
+                                                            color: 'white'
+                                                        }
+                                                    }}
                                                 >
-                                                    {column.id === "STT" ? page * 10 + index + 1 : ""}
-
-                                                    {column.id === "images" ? (
-                                                        <img src={value} alt="product" style={{ width: 50, height: 50 }} />
-                                                    ) : column.id === "action" ? (
-                                                        <Fragment>
-                                                            <IconButton
-                                                                size='small'
-                                                                onClick={() => handleViewDetail(row)}
-                                                            >
-                                                                <Details />
-                                                            </IconButton>
-                                                        </Fragment>
-
-                                                    ) : (
-                                                        value
-                                                    )}
-                                                </TableCell>
-                                            );
-                                        })}
+                                                    <ViewIcon />
+                                                </IconButton>
+                                            </Tooltip>
+                                        </TableCell>
                                     </TableRow>
-                                );
-                            })}
+                                ))
+                            )}
                         </TableBody>
                     </Table>
                 </TableContainer>
-                <TablePagination
-                    rowsPerPageOptions={[5, 10, 25, 100]}
-                    component="div"
-                    count={count}
-                    rowsPerPage={rowsPerPage}
-                    page={page}
-                    onPageChange={handleChangePage}
-                    onRowsPerPageChange={handleChangeRowsPerPage}
-                />
-            </Grid>
-        </Grid>
+
+                {data.length > 0 && (
+                    <TablePagination
+                        rowsPerPageOptions={[5, 10, 25, 50]}
+                        component="div"
+                        count={count}
+                        rowsPerPage={rowsPerPage}
+                        page={page}
+                        onPageChange={handleChangePage}
+                        onRowsPerPageChange={handleChangeRowsPerPage}
+                        sx={{
+                            borderTop: '1px solid #e0e0e0',
+                            backgroundColor: '#fafafa'
+                        }}
+                    />
+                )}
+            </Paper>
+        </Box>
     );
 }
 
-export default ProductImportListPage
+export default ProductImportListPage;

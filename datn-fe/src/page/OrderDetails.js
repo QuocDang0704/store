@@ -1,19 +1,15 @@
 import React, { useEffect, useState } from 'react';
 import {
-  Button,
+  Card,
   Grid,
   Typography,
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
-import { Box, Container } from '@mui/system';
-import { toast } from 'react-toastify';
+import { Container } from '@mui/system';
 import AuthService from '../service/AuthService';
 import OrderService from '../service/OrderService';
 import { useParams } from 'react-router-dom';
-import { ca, fi } from 'date-fns/locale';
 import HandleError from '../utils/HandleError';
-import { set } from 'date-fns';
-import ProductService from '../service/ProductService';
 
 function OrderDetails() {
   const navigate = useNavigate();
@@ -84,7 +80,7 @@ function OrderDetails() {
   return (
     <>
       <Container sx={{ marginTop: 3 }}>
-        <Typography variant='h4' gutterBottom sx={{ fontWeight: 'bold' }}>
+        <Typography variant='h4' textAlign={'left'} gutterBottom sx={{ fontWeight: 'bold' }}>
           Chi tiết đơn hàng
         </Typography>
         {/* <Grid container style={{ margin: '20px 0' }} justifyContent={'flex-end'}>
@@ -92,145 +88,129 @@ function OrderDetails() {
             <Button variant="outlined" onClick={printInvoice}>In hóa đơn</Button>
           </Grid>
         </Grid> */}
+        <Card sx={{ p: 3, boxShadow: 3, borderRadius: 3, marginTop: '30px', marginBottom: '30px' }}>
+          <Grid container spacing={3} sx={{ marginTop: '30px', marginLeft: '30px' }} id='invoice-content'>
 
-        <Grid container spacing={3} sx={{ marginTop: '30px' }} id='invoice-content'>
-          <Grid container item spacing={3} justifyContent={'flex-start'}>
-            <Grid item xs={5}>
-              <Typography variant='h6' gutterBottom sx={{ fontWeight: 'bold' }}>
+            <Grid container item spacing={3} justifyContent={'flex-start'}>
+
+              <Typography variant="h6" gutterBottom fontWeight="bold">
                 Thông tin đơn hàng
               </Typography>
-              
-              <Typography variant='body1' >
-                Khách hàng: {data.user?.firstName} {data.user?.lastName}
-              </Typography>
 
-              <Typography variant='body1' >
-                Mã đơn hàng: {data.id}
-              </Typography>
+              <Grid container spacing={1}>
+                <Grid item xs={12}><Typography><b>Khách hàng:</b> {data.user?.firstName} {data.user?.lastName}</Typography></Grid>
+                <Grid item xs={12}><Typography><b>Mã đơn hàng:</b> {data.id}</Typography></Grid>
+                <Grid item xs={12}><Typography><b>Ngày đặt hàng:</b> {data.orderDate}</Typography></Grid>
+                <Grid item xs={12}><Typography><b>Trạng thái:</b> {data.status}</Typography></Grid>
+                <Grid item xs={12}><Typography><b>Phương thức thanh toán:</b> {data.paymentMethod}</Typography></Grid>
+                <Grid item xs={12}><Typography><b>Địa chỉ:</b> {data.address}</Typography></Grid>
+                <Grid item xs={12}><Typography><b>Số điện thoại:</b> {data.phone}</Typography></Grid>
+              </Grid>
 
-              <Typography variant='body1' >
-                Ngày đặt hàng: {data.orderDate}
-              </Typography>
-
-              <Typography variant='body1' >
-                Trạng thái: {data.status}
-              </Typography>
-
-              <Typography variant='body1' >
-                Phương thức thanh toán: {data.paymentMethod}
-              </Typography>
-
-              <Typography variant='body1' >
-                Địa chỉ: {data.address}
-              </Typography>
-
-              <Typography variant='body1' >
-                Số điện thoại: {data.phone}
-              </Typography>
             </Grid>
-          </Grid>
-          <Grid item xs={12}>
-            <Grid container spacing={2} alignItems='center'>
-              <Grid
-                item
-                xs={2.5}
-                sx={{ fontWeight: 'bold', fontSize: '1.2rem' }}
-              >
-                Ảnh
-              </Grid>
-              <Grid item xs={2}>
-                <Typography
-                  variant='subtitle1'
+            <Grid item xs={12}>
+              <Grid container spacing={2} alignItems='center'>
+                <Grid
+                  item
+                  xs={2.5}
                   sx={{ fontWeight: 'bold', fontSize: '1.2rem' }}
                 >
-                  Sản phẩm
-                </Typography>
-              </Grid>
-              <Grid item xs={2}>
-                <Typography
-                  variant='body1'
-                  sx={{ fontWeight: 'bold', fontSize: '1.2rem' }}
-                >
-                  Giá
-                </Typography>
-              </Grid>
-              <Grid item xs={1.5}>
-                <Typography
-                  variant='body1'
-                  sx={{ fontWeight: 'bold', fontSize: '1.2rem' }}
-                >
-                  Số lượng
-                </Typography>
-              </Grid>
-              <Grid item xs={2}>
-                <Typography
-                  variant='body1'
-                  sx={{ fontWeight: 'bold', fontSize: '1.2rem' }}
-                >
-                  Tổng
-                </Typography>
-              </Grid>
-            </Grid>
-          </Grid>
-          {data?.orderDetails?.map((item, index) => (
-            <Grid
-              item
-              xs={12}
-              key={item.id}
-              style={{
-                backgroundColor: '#f0f0f0',
-                padding: '0px',
-                margin: '10px 0',
-                borderRadius: '10px',
-              }}
-            >
-              <Grid container alignItems='center'>
-                <Grid item xs={2.5}>
-                  <img
-                    src={'http://localhost:8080/' + item.productDetail.images}
-                    alt={item.productDetail.id}
-                    style={{
-                      width: '100%',
-                      maxWidth: '150px',
-                      maxHeight: '150px',
-                    }}
-                  />
+                  Ảnh
                 </Grid>
                 <Grid item xs={2}>
-                  {/* <Typography variant='subtitle1'>{item.name}</Typography> */}
-                  <Typography variant='body2'>
-                    Size: {item.productDetail.size.name}
-                  </Typography>
-                  <Typography variant='body2'>
-                    Color: {item.productDetail.color.name}
+                  <Typography
+                    variant='subtitle1'
+                    sx={{ fontWeight: 'bold', fontSize: '1.2rem' }}
+                  >
+                    Sản phẩm
                   </Typography>
                 </Grid>
                 <Grid item xs={2}>
-                  <Typography variant='body1'>
-                    {formatVietnameseCurrency(item.price)} VND
+                  <Typography
+                    variant='body1'
+                    sx={{ fontWeight: 'bold', fontSize: '1.2rem' }}
+                  >
+                    Giá
                   </Typography>
                 </Grid>
                 <Grid item xs={1.5}>
-                  <Typography variant='body1'>{item.quantity}</Typography>
-                </Grid>
-                <Grid item xs={2}>
-                  <Typography variant='body1'>
-                    {formatVietnameseCurrency(item.price * item.quantity)}{' '}
-                    VND
+                  <Typography
+                    variant='body1'
+                    sx={{ fontWeight: 'bold', fontSize: '1.2rem' }}
+                  >
+                    Số lượng
                   </Typography>
                 </Grid>
-
+                <Grid item xs={2}>
+                  <Typography
+                    variant='body1'
+                    sx={{ fontWeight: 'bold', fontSize: '1.2rem' }}
+                  >
+                    Tổng
+                  </Typography>
+                </Grid>
               </Grid>
             </Grid>
-          ))}
-          <Grid container style={{ margin: '20px 0' }} justifyContent={'flex-end'}>
-            <Grid item xs={4}>
-              <Typography variant='body1' sx={{ fontWeight: 'bold', fontSize: '1.2rem' }}>
-                Tổng tiền: {formatVietnameseCurrency(data.total)} VND
-              </Typography>
+            {data?.orderDetails?.map((item, index) => (
+              <Grid
+                item
+                xs={12}
+                key={item.id}
+                style={{
+                  backgroundColor: '#f0f0f0',
+                  padding: '0px',
+                  margin: '10px 0',
+                  borderRadius: '10px',
+                }}
+              >
+                <Grid container alignItems='center'>
+                  <Grid item xs={2.5}>
+                    <img
+                      src={'http://localhost:8080/' + item.productDetail.images}
+                      alt={item.productDetail.id}
+                      style={{
+                        width: '100%',
+                        maxWidth: '150px',
+                        maxHeight: '150px',
+                      }}
+                    />
+                  </Grid>
+                  <Grid item xs={2}>
+                    {/* <Typography variant='subtitle1'>{item.name}</Typography> */}
+                    <Typography variant='body2'>
+                      Size: {item.productDetail.size.name}
+                    </Typography>
+                    <Typography variant='body2'>
+                      Color: {item.productDetail.color.name}
+                    </Typography>
+                  </Grid>
+                  <Grid item xs={2}>
+                    <Typography variant='body1'>
+                      {formatVietnameseCurrency(item.price)} VND
+                    </Typography>
+                  </Grid>
+                  <Grid item xs={1.5}>
+                    <Typography variant='body1'>{item.quantity}</Typography>
+                  </Grid>
+                  <Grid item xs={2}>
+                    <Typography variant='body1'>
+                      {formatVietnameseCurrency(item.price * item.quantity)}{' '}
+                      VND
+                    </Typography>
+                  </Grid>
+
+                </Grid>
+              </Grid>
+            ))}
+            <Grid container style={{ margin: '20px 0' }} justifyContent={'flex-end'}>
+              <Grid item xs={4}>
+                <Typography variant='body1' sx={{ fontWeight: 'bold', fontSize: '1.2rem' }}>
+                  Tổng tiền: {formatVietnameseCurrency(data.total)} VND
+                </Typography>
+              </Grid>
             </Grid>
           </Grid>
-        </Grid>
+        </Card>
       </Container>
     </>
   );
