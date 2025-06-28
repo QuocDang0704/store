@@ -20,10 +20,30 @@ import {
   Chip,
   Box,
   Divider,
+  Paper,
+  Avatar,
+  Stack,
+  Alert,
 } from '@mui/material';
 import { DataGrid } from '@mui/x-data-grid';
-import { Edit, LocalShipping, ShoppingCart, CheckCircle, Cancel, Schedule } from '@mui/icons-material';
-import { Stack } from '@mui/system';
+import { 
+  Edit, 
+  LocalShipping, 
+  ShoppingCart, 
+  CheckCircle, 
+  Cancel, 
+  Schedule,
+  Close,
+  Warning,
+  Info,
+  Assignment,
+  Payment,
+  LocationOn,
+  Person,
+  Phone,
+  Receipt
+} from '@mui/icons-material';
+import { Stack as MuiStack } from '@mui/system';
 import { toast } from 'react-toastify';
 
 const listActiveTab = [
@@ -129,6 +149,7 @@ function Order() {
         return '#000000'; // Black
     }
   };
+
   const handleOpenModal = (item) => {
     setOrderItem(item);
     setOpenModal(true);
@@ -147,82 +168,233 @@ function Order() {
     toast.success('Cập nhật đơn hàng thành công');
     await fetchData();
   };
+
   return (
     <Container>
       <Dialog
         open={openModal}
         onClose={handleCloseModal}
-        maxWidth='md' // Thay đổi kích thước modal
-        sx={{ padding: '20px' }} // Thêm padding
+        maxWidth='md'
+        fullWidth
+        PaperProps={{
+          sx: {
+            borderRadius: 3,
+            boxShadow: '0 20px 60px rgba(0,0,0,0.3)',
+            overflow: 'hidden',
+          }
+        }}
       >
-        <DialogTitle>Xác nhận</DialogTitle>
-        <DialogContent>
-          <DialogContentText sx={{ paddingRight: 10 }}>
-            Chọn trạng thái bạn muốn thực hiện:
-          </DialogContentText>
-        </DialogContent>
-        <Stack
-          direction={{ xs: 'column', sm: 'row' }}
-          spacing={2}
-          justifyContent="center"
-          alignItems="stretch"
-          sx={{ margin: 2, width: '100%' }}
-        >
-          {listStatusChange?.map((item) => (
-            <Button
-              key={item.value}
-              variant="contained"
-              color="info"
-              sx={{
-                borderRadius: '24px',
-                minWidth: 140,
-                fontWeight: 'bold',
-                boxShadow: 3,
-                textTransform: 'none',
-                flex: 1,
-                fontSize: '1rem',
-                py: 1.2,
-                px: 2,
-                letterSpacing: 0.5,
-                transition: 'all 0.2s',
-                '&:hover': {
-                  backgroundColor: '#0288d1',
-                  color: '#fff',
-                  boxShadow: 6,
-                },
+        {/* Header */}
+        <Box sx={{ 
+          background: 'linear-gradient(135deg, #1976d2 0%, #1565c0 100%)',
+          color: 'white',
+          p: 3,
+          position: 'relative'
+        }}>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+              <Avatar sx={{ bgcolor: 'rgba(255,255,255,0.2)', width: 48, height: 48 }}>
+                <Assignment />
+              </Avatar>
+              <Box>
+                <Typography variant="h5" sx={{ fontWeight: 'bold', mb: 0.5 }}>
+                  Quản lý đơn hàng
+                </Typography>
+                <Typography variant="body2" sx={{ opacity: 0.9 }}>
+                  Mã đơn hàng: {orderItem?.code}
+                </Typography>
+              </Box>
+            </Box>
+            <IconButton 
+              onClick={handleCloseModal}
+              sx={{ 
+                color: 'white',
+                '&:hover': { bgcolor: 'rgba(255,255,255,0.1)' }
               }}
-              onClick={() => handleUpdateStatus(item)}
             >
-              {item.name}
-            </Button>
-          ))}
-          <Button
-            variant="contained"
-            color="primary"
-            sx={{
-              borderRadius: '24px',
-              minWidth: 140,
-              fontWeight: 'bold',
-              boxShadow: 3,
-              textTransform: 'none',
-              flex: 1,
-              fontSize: '1rem',
-              py: 1.2,
-              px: 2,
-              letterSpacing: 0.5,
-              transition: 'all 0.2s',
-              '&:hover': {
-                backgroundColor: '#1565c0',
-                color: '#fff',
-                boxShadow: 6,
-              },
-            }}
-            startIcon={<Edit />}
-            onClick={() => navigate(`/order-detail/${orderItem.id}`)}
-          >
-            Xem chi tiết
-          </Button>
-        </Stack>
+              <Close />
+            </IconButton>
+          </Box>
+        </Box>
+
+        {/* Content */}
+        <DialogContent sx={{ p: 0 }}>
+          {/* Order Information */}
+          <Box sx={{ p: 3, backgroundColor: '#f8f9fa' }}>
+            <Grid container spacing={3}>
+              {/* Customer Info */}
+              <Grid item xs={12} md={6}>
+                <Card sx={{ height: '100%', boxShadow: 2 }}>
+                  <CardContent sx={{ p: 2.5 }}>
+                    <Typography variant="h6" sx={{ mb: 2, display: 'flex', alignItems: 'center', fontWeight: 'bold' }}>
+                      <Person sx={{ mr: 1, color: '#1976d2' }} />
+                      Thông tin khách hàng
+                    </Typography>
+                    <Box sx={{ mb: 2 }}>
+                      <Typography variant="body2" color="text.secondary">
+                        Tên khách hàng
+                      </Typography>
+                      <Typography variant="body1" sx={{ fontWeight: 'bold' }}>
+                        {orderItem?.name}
+                      </Typography>
+                    </Box>
+                    <Box sx={{ mb: 2 }}>
+                      <Typography variant="body2" color="text.secondary">
+                        Số điện thoại
+                      </Typography>
+                      <Typography variant="body1" sx={{ display: 'flex', alignItems: 'center' }}>
+                        <Phone sx={{ mr: 1, fontSize: 16, color: '#1976d2' }} />
+                        {orderItem?.phone}
+                      </Typography>
+                    </Box>
+                    <Box>
+                      <Typography variant="body2" color="text.secondary">
+                        Địa chỉ giao hàng
+                      </Typography>
+                      <Typography variant="body1" sx={{ display: 'flex', alignItems: 'flex-start' }}>
+                        <LocationOn sx={{ mr: 1, mt: 0.2, fontSize: 16, color: '#1976d2' }} />
+                        {orderItem?.address}
+                      </Typography>
+                    </Box>
+                  </CardContent>
+                </Card>
+              </Grid>
+
+              {/* Order Details */}
+              <Grid item xs={12} md={6}>
+                <Card sx={{ height: '100%', boxShadow: 2 }}>
+                  <CardContent sx={{ p: 2.5 }}>
+                    <Typography variant="h6" sx={{ mb: 2, display: 'flex', alignItems: 'center', fontWeight: 'bold' }}>
+                      <Receipt sx={{ mr: 1, color: '#1976d2' }} />
+                      Chi tiết đơn hàng
+                    </Typography>
+                    <Box sx={{ mb: 2 }}>
+                      <Typography variant="body2" color="text.secondary">
+                        Trạng thái hiện tại
+                      </Typography>
+                      <Chip
+                        icon={getStatusIcon(orderItem?.status)}
+                        label={getStatusName(orderItem?.status)}
+                        size="medium"
+                        sx={{
+                          backgroundColor: getStatusColor(orderItem?.status),
+                          color: 'white',
+                          fontWeight: 'bold',
+                          mt: 1
+                        }}
+                      />
+                    </Box>
+                    <Box sx={{ mb: 2 }}>
+                      <Typography variant="body2" color="text.secondary">
+                        Phương thức thanh toán
+                      </Typography>
+                      <Typography variant="body1" sx={{ display: 'flex', alignItems: 'center' }}>
+                        <Payment sx={{ mr: 1, fontSize: 16, color: '#1976d2' }} />
+                        {orderItem?.paymentMethods}
+                      </Typography>
+                    </Box>
+                    <Box>
+                      <Typography variant="body2" color="text.secondary">
+                        Tổng tiền
+                      </Typography>
+                      <Typography variant="h6" sx={{ fontWeight: 'bold', color: '#1976d2' }}>
+                        {formatVietnameseCurrency(orderItem?.total)} VND
+                      </Typography>
+                    </Box>
+                  </CardContent>
+                </Card>
+              </Grid>
+            </Grid>
+          </Box>
+
+          {/* Action Section */}
+          <Box sx={{ p: 3, backgroundColor: 'white' }}>
+            <Typography variant="h6" sx={{ mb: 3, display: 'flex', alignItems: 'center', fontWeight: 'bold' }}>
+              <Info sx={{ mr: 1, color: '#1976d2' }} />
+              Chọn hành động
+            </Typography>
+
+            {listStatusChange && listStatusChange.length > 0 ? (
+              <Alert severity="info" sx={{ mb: 3 }}>
+                <Typography variant="body2">
+                  Bạn có thể cập nhật trạng thái đơn hàng hoặc xem chi tiết đơn hàng
+                </Typography>
+              </Alert>
+            ) : (
+              <Alert severity="warning" sx={{ mb: 3 }}>
+                <Typography variant="body2">
+                  Đơn hàng này không thể cập nhật trạng thái. Bạn chỉ có thể xem chi tiết.
+                </Typography>
+              </Alert>
+            )}
+
+            <Stack
+              direction={{ xs: 'column', sm: 'row' }}
+              spacing={2}
+              justifyContent="center"
+              alignItems="stretch"
+            >
+              {listStatusChange?.map((item) => (
+                <Button
+                  key={item.value}
+                  variant="contained"
+                  color="primary"
+                  size="large"
+                  sx={{
+                    borderRadius: '12px',
+                    minWidth: 160,
+                    fontWeight: 'bold',
+                    boxShadow: 3,
+                    textTransform: 'none',
+                    flex: 1,
+                    fontSize: '1rem',
+                    py: 1.5,
+                    px: 3,
+                    letterSpacing: 0.5,
+                    transition: 'all 0.3s ease',
+                    background: 'linear-gradient(135deg, #1976d2 0%, #1565c0 100%)',
+                    '&:hover': {
+                      background: 'linear-gradient(135deg, #1565c0 0%, #0d47a1 100%)',
+                      boxShadow: 6,
+                      transform: 'translateY(-2px)',
+                    },
+                  }}
+                  onClick={() => handleUpdateStatus(item)}
+                >
+                  {item.name}
+                </Button>
+              ))}
+              <Button
+                variant="outlined"
+                color="primary"
+                size="large"
+                sx={{
+                  borderRadius: '12px',
+                  minWidth: 160,
+                  fontWeight: 'bold',
+                  boxShadow: 2,
+                  textTransform: 'none',
+                  flex: 1,
+                  fontSize: '1rem',
+                  py: 1.5,
+                  px: 3,
+                  letterSpacing: 0.5,
+                  transition: 'all 0.3s ease',
+                  borderWidth: 2,
+                  '&:hover': {
+                    borderWidth: 2,
+                    boxShadow: 4,
+                    transform: 'translateY(-2px)',
+                  },
+                }}
+                startIcon={<Edit />}
+                onClick={() => navigate(`/order-detail/${orderItem.id}`)}
+              >
+                Xem chi tiết
+              </Button>
+            </Stack>
+          </Box>
+        </DialogContent>
       </Dialog>
 
       <div className='main'>

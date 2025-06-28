@@ -13,14 +13,11 @@ import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.util.Streamable;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.Serializable;
-import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
@@ -39,21 +36,17 @@ public class ProductService implements Serializable {
 
 
     public Page<Product> getAllInCustomer(Long minPrice, Long maxPrice, String name, Long categoryId, Long supplierId, Pageable pageable) {
-        Streamable<Product> productStreamable = this.productRepository.findProductInCustomer(minPrice, maxPrice, name, pageable);
-        List<Product> productList = productStreamable.toList();
-
-        List<Product> filteredProducts = productList.stream()
-                .filter(product -> categoryId == null || product.getCategory().getId().equals(categoryId))
-                .filter(product -> supplierId == null || product.getSupplier().getId().equals(supplierId))
-                .peek(product -> {
-                    product.setImages(uri + product.getImages());
-                    product.getProductDetails().forEach(productDetail -> {
-                        productDetail.setImages(uri + productDetail.getImages());
-                    });
-                })
-                .collect(Collectors.toList());
-
-        return new PageImpl<>(filteredProducts, pageable, productList.size());
+        Page<Product> productPage = this.productRepository.findProductInCustomer(minPrice, maxPrice, name, categoryId, supplierId, pageable);
+        
+        // Update image URLs for all products in the page
+        productPage.forEach(product -> {
+            product.setImages(uri + product.getImages());
+            product.getProductDetails().forEach(productDetail -> {
+                productDetail.setImages(uri + productDetail.getImages());
+            });
+        });
+        
+        return productPage;
     }
 
 
@@ -182,12 +175,13 @@ public class ProductService implements Serializable {
         Page<ProductDetail> productDetails = this.productDetailRepository.findProductDetailByName(name, pageable);
         Page<ResProductDetailDto> productDetailDtos = productDetails.map(productDetail -> {
             ResProductDetailDto resProductDetailDto = MapperUtils.map(productDetail, ResProductDetailDto.class);
-            resProductDetailDto.setProduct(MapperUtils.map(productDetail.getProduct(), ResProductDto.class));
             resProductDetailDto.setImages(uri + resProductDetailDto.getImages());
 
-            Product product = this.productDetailRepository.findProductByProductDetailId(productDetail.getId());
+            // Map product with updated image URL
+            Product product = productDetail.getProduct();
             product.setImages(uri + product.getImages());
             resProductDetailDto.setProduct(MapperUtils.map(product, ResProductDto.class));
+            
             return resProductDetailDto;
         });
 

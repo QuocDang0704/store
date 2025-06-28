@@ -7,16 +7,42 @@ import {
   Modal,
   TextField,
   Typography,
+  Paper,
+  Card,
+  CardContent,
+  Divider,
+  Chip,
+  Avatar,
+  Stepper,
+  Step,
+  StepLabel,
+  IconButton,
+  Alert,
+  Box,
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
-import { Box, Container } from '@mui/system';
+import { Container } from '@mui/system';
 import UserService from '../service/UserService';
 import { toast } from 'react-toastify';
 import validator from 'validator';
 import AuthService from '../service/AuthService';
 import ProductService from '../service/ProductService';
 import OrderService from '../service/OrderService';
-import { Add, AddCircle, AddCircleOutline } from '@mui/icons-material';
+import { 
+  Add, 
+  AddCircle, 
+  AddCircleOutline, 
+  LocationOn, 
+  Phone, 
+  Person, 
+  ShoppingCart, 
+  Payment, 
+  LocalShipping,
+  CheckCircle,
+  CreditCard,
+  Receipt,
+  Close
+} from '@mui/icons-material';
 
 function Checkout() {
   const navigate = useNavigate();
@@ -32,6 +58,9 @@ function Checkout() {
   const [fullName, setFullName] = useState('');
   const [openModal, setOpenModal] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState('PaymentOverVnpay');
+  const [activeStep, setActiveStep] = useState(0);
+
+  const steps = ['Thông tin giao hàng', 'Xem lại đơn hàng', 'Thanh toán'];
 
   useEffect(() => {
     fetchData();
@@ -69,6 +98,7 @@ function Checkout() {
 
     setFullName(currentClient);
   };
+
   const handleOpenModal = () => {
     setOpenModal(true);
   };
@@ -102,11 +132,13 @@ function Checkout() {
   const handleAddressSelect = (address) => {
     setSelectedAddress(address);
   };
+
   const handlePhoneNumberChange = (event) => {
     const { value } = event.target;
     setPhoneNumber(value);
     setIsPhoneNumberValid(validator.isMobilePhone(value, 'vi-VN'));
   };
+
   const handleFullNameChange = (event) => {
     const { value } = event.target;
     setFullName(value);
@@ -170,385 +202,439 @@ function Checkout() {
     }
   };
 
-  return (
-    <>
-      <Container sx={{ marginTop: 3 }}>
-        <Modal
-          open={openModal}
-          onClose={handleCloseModal}
-          closeAfterTransition
-          aria-labelledby='modal-modal-title'
-          aria-describedby='modal-modal-description'
-        >
-          <Fade in={openModal}>
-            <Box
-              sx={{
-                backgroundColor: 'white',
-                padding: '20px',
-                borderRadius: '10px',
-                maxWidth: '400px',
-                margin: 'auto',
-                marginTop: '100px',
-              }}
-            >
-              <Typography variant='h5' gutterBottom sx={{ fontWeight: 'bold' }}>
-                Xác Nhận Đặt Hàng
+  const getStepContent = (step) => {
+    switch (step) {
+      case 0:
+        return (
+          <Card sx={{ mb: 3, boxShadow: 3 }}>
+            <CardContent sx={{ p: 3 }}>
+              <Typography variant="h6" sx={{ mb: 3, display: 'flex', alignItems: 'center', fontWeight: 'bold' }}>
+                <Person sx={{ mr: 1 }} />
+                Thông tin người nhận
               </Typography>
-              <Typography variant='body1' gutterBottom>
-                Người nhận: {fullName}
-              </Typography>
-              <Typography variant='body1' gutterBottom>
-                Địa Chỉ Giao Hàng:{' '}
-                {selectedAddress
-                  ? `${selectedAddress.exact}, ${selectedAddress.ward}, ${selectedAddress.district}, ${selectedAddress.province}`
-                  : ''}
-              </Typography>
-              <Typography variant='body1' gutterBottom>
-                Số Điện Thoại: {phoneNumber}
-              </Typography>
-              <Typography variant='body1' gutterBottom>
-                Tổng Thanh Toán: {formatVietnameseCurrency(totalAmount)}
-              </Typography>
-              <Button
-                variant='contained'
-                color='primary'
-                onClick={handleCheckout}
-                fullWidth
-              >
-                Xác Nhận Đặt Hàng
-              </Button>
-            </Box>
-          </Fade>
-        </Modal>
-
-        <Typography variant='h4' gutterBottom sx={{ fontWeight: 'bold' }}>
-          Thanh Toán Hóa Đơn
-        </Typography>
-        <Grid container spacing={3} sx={{ marginTop: '30px' }}>
-          <Grid item xs={12}>
-            <TextField
-              label='Họ và tên'
-              value={fullName}
-              onChange={handleFullNameChange}
-              fullWidth
-            />
-          </Grid>
-
-          <Grid item xs={12}>
-            <TextField
-              label='Số điện thoại'
-              value={phoneNumber}
-              onChange={handlePhoneNumberChange}
-              fullWidth
-              error={!isPhoneNumberValid}
-              helperText={!isPhoneNumberValid && 'Số điện thoại không hợp lệ'}
-            />
-          </Grid>
-          <Grid item xs={12}>
-            <Typography
-              variant='h5'
-              sx={{ fontWeight: 'bold', marginBottom: '20px' }}
-            >
-              Địa Chỉ Giao Hàng
-            </Typography>
-            <Grid container spacing={2}>
-              {listAddress?.map((address) => (
-                <Grid item xs={3} key={address.id}>
-                  <Button
-                    sx={{
-                      padding: '5px 10px',
-                      fontSize: '14px',
-                      fontWeight: 'bold',
-                    }}
-                    variant={
-                      selectedAddress && selectedAddress.id === address.id
-                        ? 'contained'
-                        : 'outlined'
-                    }
-                    onClick={() => handleAddressSelect(address)}
+              <Grid container spacing={3}>
+                <Grid item xs={12} md={6}>
+                  <TextField
+                    label='Họ và tên'
+                    value={fullName}
+                    onChange={handleFullNameChange}
                     fullWidth
-                  >
-                    {address.exact}, {address.ward}, {address.district},{' '}
-                    {address.province}
-                  </Button>
-                </Grid>
-              ))}
-              <Grid item xs={3}>
-                <Button
-                  sx={{
-                    padding: '5px 10px',
-                    fontSize: '14px',
-                    fontWeight: 'bold',
-                    height: '60px',
-                  }}
-                  onClick={() => navigate('/address')}
-                  variant={'outlined'}
-                  fullWidth
-                >
-                  <Typography
-                    sx={{
-                      padding: '5px 10px',
-                      fontSize: '14px',
-                      fontWeight: 'bold',
-                    }}
-                  >
-                    Thêm địa chỉ giao hàng{' '}
-                  </Typography>
-                  <AddCircleOutline sx={{ fontSize: 30 }} />
-                </Button>
-              </Grid>
-            </Grid>
-          </Grid>
-          <Grid item xs={12}>
-            <Grid container spacing={2} alignItems='center'>
-              <Grid
-                item
-                xs={2.5}
-                sx={{ fontWeight: 'bold', fontSize: '1.2rem' }}
-              >
-                Ảnh
-              </Grid>
-              <Grid item xs={2}>
-                <Typography
-                  variant='subtitle1'
-                  sx={{ fontWeight: 'bold', fontSize: '1.2rem' }}
-                >
-                  Sản phẩm
-                </Typography>
-              </Grid>
-              <Grid item xs={2}>
-                <Typography
-                  variant='body1'
-                  sx={{ fontWeight: 'bold', fontSize: '1.2rem' }}
-                >
-                  Giá
-                </Typography>
-              </Grid>
-              <Grid item xs={1.5}>
-                <Typography
-                  variant='body1'
-                  sx={{ fontWeight: 'bold', fontSize: '1.2rem' }}
-                >
-                  Số lượng
-                </Typography>
-              </Grid>
-              <Grid item xs={2}>
-                <Typography
-                  variant='body1'
-                  sx={{ fontWeight: 'bold', fontSize: '1.2rem' }}
-                >
-                  Tổng
-                </Typography>
-              </Grid>
-            </Grid>
-          </Grid>
-          {checkoutItems?.map((item, index) => (
-            <Grid
-              item
-              xs={12}
-              key={item.id}
-              style={{
-                backgroundColor: '#f0f0f0',
-                padding: '0px',
-                margin: '10px 0',
-                borderRadius: '10px',
-              }}
-            >
-              <Grid container alignItems='center'>
-                <Grid item xs={2.5}>
-                  <img
-                    src={item.images}
-                    alt={item.name}
-                    style={{
-                      width: '100%',
-                      maxWidth: '150px',
-                      maxHeight: '150px',
+                    variant="outlined"
+                    InputProps={{
+                      startAdornment: <Person sx={{ mr: 1, color: 'text.secondary' }} />,
                     }}
                   />
                 </Grid>
-                <Grid item xs={2}>
-                  <Typography variant='subtitle1'>{item.name}</Typography>
-                  <Typography variant='body2'>
-                    Size: {item.size.name}
-                  </Typography>
-                  <Typography variant='body2'>
-                    Color: {item.color.name}
-                  </Typography>
-                </Grid>
-                <Grid item xs={2}>
-                  <Typography variant='body1'>
-                    {formatVietnameseCurrency(item.price)} VND
-                  </Typography>
-                </Grid>
-                <Grid item xs={1.5}>
-                  <Typography variant='body1'>{item.quantityCart}</Typography>
-                </Grid>
-                <Grid item xs={2}>
-                  <Typography variant='body1'>
-                    {formatVietnameseCurrency(item.price * item.quantityCart)}{' '}
-                    VND
-                  </Typography>
-                </Grid>
-              </Grid>
-            </Grid>
-          ))}
-
-          <Grid item xs={12}>
-            <Typography
-              variant='h5'
-              sx={{ fontWeight: 'bold', marginBottom: '20px' }}
-            >
-              Mã Giảm Giá
-            </Typography>
-            <Grid container spacing={2}>
-              {coupons?.map((coupon) => (
-                <Grid item xs={3} key={coupon.id}>
-                  <Button
-                    sx={{
-                      padding: '5px 10px',
-                      fontSize: '14px',
-                      fontWeight: 'bold',
-                    }}
-                    variant={
-                      coupon && coupon.id === selectedCoupon?.id
-                        ? 'contained'
-                        : 'outlined'
-                    }
-                    onClick={() =>
-                      handleCouponSelect(
-                        checkoutItems?.reduce(
-                          (total, item) =>
-                            total + item.price * item.quantityCart,
-                          0,
-                        ),
-                        coupon,
-                      )
-                    }
+                <Grid item xs={12} md={6}>
+                  <TextField
+                    label='Số điện thoại'
+                    value={phoneNumber}
+                    onChange={handlePhoneNumberChange}
                     fullWidth
-                    disabled={
-                      !(
-                        checkoutItems?.reduce(
-                          (total, item) =>
-                            total + item.price * item.quantityCart,
-                          0,
-                        ) >= coupon.conditions
-                      )
-                    }
-                  >
-                    Giảm {formatVietnameseCurrency(coupon.discountAmount)} VND
-                    cho đơn hàng từ{' '}
-                    {formatVietnameseCurrency(coupon.conditions)} VND
-                  </Button>
+                    variant="outlined"
+                    error={!isPhoneNumberValid}
+                    helperText={!isPhoneNumberValid && 'Số điện thoại không hợp lệ'}
+                    InputProps={{
+                      startAdornment: <Phone sx={{ mr: 1, color: 'text.secondary' }} />,
+                    }}
+                  />
                 </Grid>
-              ))}
-            </Grid>
-          </Grid>
-          <Grid item xs={4}>
-            {selectedCoupon ? (
-              <Button variant='outlined' onClick={handleRemoveCoupon}>
-                Loại bỏ mã giảm giá
-              </Button>
-            ) : null}
-          </Grid>
-          <Grid item xs={12}>
-            <Typography
-              variant='h5'
-              sx={{ fontWeight: 'bold', marginBottom: '20px' }}
-            >
-              Phương Thức Thanh Toán
-            </Typography>
-            <Grid container item spacing={3} xs={12}>
-              <Grid item xs={2}>
-                <Button
-                  variant={
-                    paymentMethod === 'PaymentOverVnpay'
-                      ? 'contained'
-                      : 'outlined'
-                  }
-                  onClick={() => setPaymentMethod('PaymentOverVnpay')}
-                  fullWidth
-                  sx={{
-                    marginBottom: '10px',
-                    padding: '5px 10px',
-                    fontSize: '14px',
-                    fontWeight: 'bold',
-                  }}
-                >
-                  Thanh toán qua VNPay
-                </Button>
               </Grid>
-              <Grid item xs={2}>
-                <Button
-                  variant={
-                    paymentMethod === 'PaymentOnDelivery'
-                      ? 'contained'
-                      : 'outlined'
-                  }
-                  onClick={() => setPaymentMethod('PaymentOnDelivery')}
-                  fullWidth
-                  sx={{
-                    marginBottom: '10px',
-                    padding: '5px 10px',
-                    fontSize: '14px',
-                    fontWeight: 'bold',
-                  }}
-                >
-                  Thanh toán khi nhận hàng
-                </Button>
-              </Grid>
-            </Grid>
-          </Grid>
 
-          <Grid container style={{ margin: '20px 0' }}>
-            <Grid item xs={10}>
-              <Typography
-                variant='h6'
-                sx={{ fontWeight: 'bold', fontSize: '1.5rem' }}
-              >
-                Tổng Thanh Toán:{' '}
-                {totalAmount !==
-                checkoutItems?.reduce(
-                  (total, item) => total + item.price * item.quantityCart,
-                  0,
-                ) ? (
-                  <>
-                    <span
-                      style={{ textDecoration: 'line-through', opacity: 0.5 }}
-                    >
-                      {formatVietnameseCurrency(
-                        checkoutItems?.reduce(
-                          (total, item) =>
-                            total + item.price * item.quantityCart,
-                          0,
-                        ),
-                      )}{' '}
-                      VND
-                    </span>
-                    <> {formatVietnameseCurrency(totalAmount)}</>
-                  </>
-                ) : (
-                  formatVietnameseCurrency(
-                    checkoutItems?.reduce(
-                      (total, item) => total + item.price * item.quantityCart,
-                      0,
-                    ),
-                  )
-                )}{' '}
-                VND
+              <Divider sx={{ my: 3 }} />
+
+              <Typography variant="h6" sx={{ mb: 3, display: 'flex', alignItems: 'center', fontWeight: 'bold' }}>
+                <LocationOn sx={{ mr: 1 }} />
+                Địa chỉ giao hàng
               </Typography>
-            </Grid>
-            <Grid item xs={2}>
+              
+              {!isPhoneNumberValid && (
+                <Alert severity="warning" sx={{ mb: 2 }}>
+                  Vui lòng nhập số điện thoại hợp lệ trước khi tiếp tục
+                </Alert>
+              )}
+
+              <Grid container spacing={2}>
+                {listAddress?.map((address) => (
+                  <Grid item xs={12} md={6} lg={4} key={address.id}>
+                    <Card
+                      variant="outlined"
+                      sx={{
+                        cursor: 'pointer',
+                        border: selectedAddress && selectedAddress.id === address.id ? '2px solid #1976d2' : '1px solid #e0e0e0',
+                        backgroundColor: selectedAddress && selectedAddress.id === address.id ? '#f3f8ff' : 'white',
+                        '&:hover': {
+                          borderColor: '#1976d2',
+                          backgroundColor: '#f3f8ff',
+                        },
+                        transition: 'all 0.3s ease',
+                      }}
+                      onClick={() => handleAddressSelect(address)}
+                    >
+                      <CardContent sx={{ p: 2 }}>
+                        <Typography variant="body2" sx={{ fontWeight: 'bold', mb: 1 }}>
+                          {address.exact}
+                        </Typography>
+                        <Typography variant="caption" color="text.secondary">
+                          {address.ward}, {address.district}, {address.province}
+                        </Typography>
+                        {address.isDefault && (
+                          <Chip 
+                            label="Mặc định" 
+                            size="small" 
+                            color="primary" 
+                            sx={{ mt: 1 }}
+                          />
+                        )}
+                      </CardContent>
+                    </Card>
+                  </Grid>
+                ))}
+                <Grid item xs={12} md={6} lg={4}>
+                  <Card
+                    variant="outlined"
+                    sx={{
+                      cursor: 'pointer',
+                      border: '2px dashed #1976d2',
+                      backgroundColor: '#f8f9fa',
+                      '&:hover': {
+                        backgroundColor: '#e3f2fd',
+                      },
+                      transition: 'all 0.3s ease',
+                      height: '100%',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}
+                    onClick={() => navigate('/address')}
+                  >
+                    <CardContent sx={{ textAlign: 'center', p: 3 }}>
+                      <AddCircleOutline sx={{ fontSize: 40, color: '#1976d2', mb: 1 }} />
+                      <Typography variant="body2" color="primary" sx={{ fontWeight: 'bold' }}>
+                        Thêm địa chỉ mới
+                      </Typography>
+                    </CardContent>
+                  </Card>
+                </Grid>
+              </Grid>
+            </CardContent>
+          </Card>
+        );
+      case 1:
+        return (
+          <Card sx={{ mb: 3, boxShadow: 3 }}>
+            <CardContent sx={{ p: 3 }}>
+              <Typography variant="h6" sx={{ mb: 3, display: 'flex', alignItems: 'center', fontWeight: 'bold' }}>
+                <ShoppingCart sx={{ mr: 1 }} />
+                Chi tiết đơn hàng
+              </Typography>
+              
+              {checkoutItems?.map((item, index) => (
+                <Card key={item.id} sx={{ mb: 2, backgroundColor: '#fafafa' }}>
+                  <CardContent sx={{ p: 2 }}>
+                    <Grid container alignItems="center" spacing={2}>
+                      <Grid item xs={12} sm={2}>
+                        <Avatar
+                          src={item.images}
+                          alt={item.name}
+                          variant="rounded"
+                          sx={{ width: 80, height: 80 }}
+                        />
+                      </Grid>
+                      <Grid item xs={12} sm={4}>
+                        <Typography variant="subtitle1" sx={{ fontWeight: 'bold', mb: 1 }}>
+                          {item.name}
+                        </Typography>
+                        <Chip label={`Size: ${item.size.name}`} size="small" sx={{ mr: 1 }} />
+                        <Chip label={`Color: ${item.color.name}`} size="small" />
+                      </Grid>
+                      <Grid item xs={12} sm={2}>
+                        <Typography variant="body2" color="text.secondary">
+                          Đơn giá
+                        </Typography>
+                        <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>
+                          {formatVietnameseCurrency(item.price)} VND
+                        </Typography>
+                      </Grid>
+                      <Grid item xs={12} sm={2}>
+                        <Typography variant="body2" color="text.secondary">
+                          Số lượng
+                        </Typography>
+                        <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>
+                          {item.quantityCart}
+                        </Typography>
+                      </Grid>
+                      <Grid item xs={12} sm={2}>
+                        <Typography variant="body2" color="text.secondary">
+                          Thành tiền
+                        </Typography>
+                        <Typography variant="subtitle1" sx={{ fontWeight: 'bold', color: '#1976d2' }}>
+                          {formatVietnameseCurrency(item.price * item.quantityCart)} VND
+                        </Typography>
+                      </Grid>
+                    </Grid>
+                  </CardContent>
+                </Card>
+              ))}
+
+              <Divider sx={{ my: 3 }} />
+
+              <Typography variant="h6" sx={{ mb: 3, display: 'flex', alignItems: 'center', fontWeight: 'bold' }}>
+                <Receipt sx={{ mr: 1 }} />
+                Mã giảm giá
+              </Typography>
+
+              <Grid container spacing={2}>
+                {coupons?.map((coupon) => (
+                  <Grid item xs={12} md={6} lg={4} key={coupon.id}>
+                    <Card
+                      variant="outlined"
+                      sx={{
+                        cursor: 'pointer',
+                        border: coupon && coupon.id === selectedCoupon?.id ? '2px solid #1976d2' : '1px solid #e0e0e0',
+                        backgroundColor: coupon && coupon.id === selectedCoupon?.id ? '#f3f8ff' : 'white',
+                        opacity: !(checkoutItems?.reduce((total, item) => total + item.price * item.quantityCart, 0) >= coupon.conditions) ? 0.5 : 1,
+                        '&:hover': {
+                          borderColor: '#1976d2',
+                          backgroundColor: '#f3f8ff',
+                        },
+                        transition: 'all 0.3s ease',
+                      }}
+                      onClick={() => {
+                        if (checkoutItems?.reduce((total, item) => total + item.price * item.quantityCart, 0) >= coupon.conditions) {
+                          handleCouponSelect(
+                            checkoutItems?.reduce((total, item) => total + item.price * item.quantityCart, 0),
+                            coupon,
+                          );
+                        }
+                      }}
+                    >
+                      <CardContent sx={{ p: 2, textAlign: 'center' }}>
+                        <Typography variant="h6" color="primary" sx={{ fontWeight: 'bold', mb: 1 }}>
+                          -{formatVietnameseCurrency(coupon.discountAmount)} VND
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary">
+                          Cho đơn hàng từ {formatVietnameseCurrency(coupon.conditions)} VND
+                        </Typography>
+                      </CardContent>
+                    </Card>
+                  </Grid>
+                ))}
+              </Grid>
+
+              {selectedCoupon && (
+                <Box sx={{ mt: 2 }}>
+                  <Button 
+                    variant="outlined" 
+                    onClick={handleRemoveCoupon}
+                    startIcon={<Close />}
+                    color="error"
+                  >
+                    Loại bỏ mã giảm giá
+                  </Button>
+                </Box>
+              )}
+            </CardContent>
+          </Card>
+        );
+      case 2:
+        return (
+          <Card sx={{ mb: 3, boxShadow: 3 }}>
+            <CardContent sx={{ p: 3 }}>
+              <Typography variant="h6" sx={{ mb: 3, display: 'flex', alignItems: 'center', fontWeight: 'bold' }}>
+                <Payment sx={{ mr: 1 }} />
+                Phương thức thanh toán
+              </Typography>
+
+              <Grid container spacing={3}>
+                <Grid item xs={12} md={6}>
+                  <Card
+                    variant="outlined"
+                    sx={{
+                      cursor: 'pointer',
+                      border: paymentMethod === 'PaymentOverVnpay' ? '2px solid #1976d2' : '1px solid #e0e0e0',
+                      backgroundColor: paymentMethod === 'PaymentOverVnpay' ? '#f3f8ff' : 'white',
+                      '&:hover': {
+                        borderColor: '#1976d2',
+                        backgroundColor: '#f3f8ff',
+                      },
+                      transition: 'all 0.3s ease',
+                    }}
+                    onClick={() => setPaymentMethod('PaymentOverVnpay')}
+                  >
+                    <CardContent sx={{ p: 3, textAlign: 'center' }}>
+                      <CreditCard sx={{ fontSize: 40, color: '#1976d2', mb: 2 }} />
+                      <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 1 }}>
+                        Thanh toán qua VNPay
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary">
+                        Thanh toán an toàn qua cổng VNPay
+                      </Typography>
+                    </CardContent>
+                  </Card>
+                </Grid>
+                <Grid item xs={12} md={6}>
+                  <Card
+                    variant="outlined"
+                    sx={{
+                      cursor: 'pointer',
+                      border: paymentMethod === 'PaymentOnDelivery' ? '2px solid #1976d2' : '1px solid #e0e0e0',
+                      backgroundColor: paymentMethod === 'PaymentOnDelivery' ? '#f3f8ff' : 'white',
+                      '&:hover': {
+                        borderColor: '#1976d2',
+                        backgroundColor: '#f3f8ff',
+                      },
+                      transition: 'all 0.3s ease',
+                    }}
+                    onClick={() => setPaymentMethod('PaymentOnDelivery')}
+                  >
+                    <CardContent sx={{ p: 3, textAlign: 'center' }}>
+                      <LocalShipping sx={{ fontSize: 40, color: '#1976d2', mb: 2 }} />
+                      <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 1 }}>
+                        Thanh toán khi nhận hàng
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary">
+                        Thanh toán tiền mặt khi nhận hàng
+                      </Typography>
+                    </CardContent>
+                  </Card>
+                </Grid>
+              </Grid>
+            </CardContent>
+          </Card>
+        );
+      default:
+        return 'Unknown step';
+    }
+  };
+
+  const handleNext = () => {
+    if (activeStep === 0 && (!isPhoneNumberValid || !selectedAddress)) {
+      toast.warning('Vui lòng điền đầy đủ thông tin và chọn địa chỉ giao hàng');
+      return;
+    }
+    setActiveStep((prevActiveStep) => prevActiveStep + 1);
+  };
+
+  const handleBack = () => {
+    setActiveStep((prevActiveStep) => prevActiveStep - 1);
+  };
+
+  return (
+    <>
+      <Modal
+        open={openModal}
+        onClose={handleCloseModal}
+        closeAfterTransition
+        aria-labelledby='modal-modal-title'
+        aria-describedby='modal-modal-description'
+      >
+        <Fade in={openModal}>
+          <Box
+            sx={{
+              backgroundColor: 'white',
+              padding: '30px',
+              borderRadius: '15px',
+              maxWidth: '500px',
+              margin: 'auto',
+              marginTop: '100px',
+              boxShadow: 24,
+            }}
+          >
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+              <Typography variant='h5' sx={{ fontWeight: 'bold' }}>
+                Xác nhận đặt hàng
+              </Typography>
+              <IconButton onClick={handleCloseModal}>
+                <Close />
+              </IconButton>
+            </Box>
+            
+            <Card sx={{ mb: 3, backgroundColor: '#f8f9fa' }}>
+              <CardContent>
+                <Typography variant='body1' sx={{ mb: 1, fontWeight: 'bold' }}>
+                  Người nhận: {fullName}
+                </Typography>
+                <Typography variant='body1' sx={{ mb: 1 }}>
+                  Địa chỉ: {selectedAddress ? `${selectedAddress.exact}, ${selectedAddress.ward}, ${selectedAddress.district}, ${selectedAddress.province}` : ''}
+                </Typography>
+                <Typography variant='body1' sx={{ mb: 1 }}>
+                  Số điện thoại: {phoneNumber}
+                </Typography>
+                <Typography variant='h6' sx={{ fontWeight: 'bold', color: '#1976d2' }}>
+                  Tổng thanh toán: {formatVietnameseCurrency(totalAmount)} VND
+                </Typography>
+              </CardContent>
+            </Card>
+
+            <Button
+              variant='contained'
+              color='primary'
+              onClick={handleCheckout}
+              fullWidth
+              size="large"
+              sx={{ fontWeight: 'bold' }}
+            >
+              Xác nhận đặt hàng
+            </Button>
+          </Box>
+        </Fade>
+      </Modal>
+
+      <Container maxWidth="lg" sx={{ py: 4 }}>
+        <Typography variant='h4' gutterBottom sx={{ fontWeight: 'bold', textAlign: 'center', mb: 4 }}>
+          Thanh toán đơn hàng
+        </Typography>
+
+        <Stepper activeStep={activeStep} sx={{ mb: 4 }}>
+          {steps.map((label) => (
+            <Step key={label}>
+              <StepLabel>{label}</StepLabel>
+            </Step>
+          ))}
+        </Stepper>
+
+        {getStepContent(activeStep)}
+
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 4 }}>
+          <Button
+            disabled={activeStep === 0}
+            onClick={handleBack}
+            variant="outlined"
+            size="large"
+          >
+            Quay lại
+          </Button>
+
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+            <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
+              Tổng thanh toán: {formatVietnameseCurrency(totalAmount)} VND
+            </Typography>
+            
+            {activeStep === steps.length - 1 ? (
               <Button
-                variant='contained'
-                color='primary'
-                disabled={!isPhoneNumberValid || !selectedAddress}
+                variant="contained"
+                color="primary"
+                size="large"
                 onClick={handleOpenModal}
+                disabled={!isPhoneNumberValid || !selectedAddress}
+                sx={{ fontWeight: 'bold', px: 4 }}
               >
-                Thanh Toán
+                Thanh toán
               </Button>
-            </Grid>
-          </Grid>
-        </Grid>
+            ) : (
+              <Button
+                variant="contained"
+                color="primary"
+                size="large"
+                onClick={handleNext}
+                sx={{ fontWeight: 'bold', px: 4 }}
+              >
+                Tiếp tục
+              </Button>
+            )}
+          </Box>
+        </Box>
       </Container>
     </>
   );

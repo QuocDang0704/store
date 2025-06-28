@@ -3,11 +3,14 @@ import {
   Typography,
   Grid,
   Card,
-  CardActionArea,
   CardMedia,
   Button,
   IconButton,
   TextField,
+  Box,
+  Paper,
+  Chip,
+  Divider,
 } from '@mui/material';
 import ProductService from '../service/ProductService';
 import { useParams } from 'react-router-dom';
@@ -15,6 +18,13 @@ import { Container } from '@mui/system';
 import {
   AddCircleOutline,
   RemoveCircleOutline,
+  ShoppingCart,
+  Favorite,
+  Share,
+  LocalShipping,
+  Security,
+  Refresh,
+  Support,
 } from '@mui/icons-material';
 import { toast } from 'react-toastify';
 import { useNavigate } from 'react-router-dom';
@@ -69,7 +79,7 @@ const SingleProduct = () => {
       }
 
       localStorage.setItem('cart', JSON.stringify(cart));
-      toast.success('Thêm vào giỏ hàng thành công');
+      toast.success('🛒 Đã thêm vào giỏ hàng thành công!');
       navigate('/cart');
     }
   };
@@ -148,323 +158,374 @@ const SingleProduct = () => {
       .replace(/\B(?=(\d{3})+(?!\d))/g, ',');
     return formattedValue;
   };
+  
   return (
-    <Container>
-      <Grid container spacing={5} marginY={'5px'}>
-        <Grid item xs={12} md={6} container justifyContent='center'>
-          <Grid item style={{ marginBottom: '20px' }}>
-            <Card>
-              <CardActionArea>
-                <CardMedia
-                  component='img'
-                  style={{ width: '540px', height: '720px' }}
-                  image={
-                    mainImage || (product?.images ? product.images[0] : null)
-                  }
-                  alt={product?.name}
-                />
-              </CardActionArea>
-            </Card>
-          </Grid>
-          <Grid item>
-            <Grid container spacing={2}>
-              {product?.productDetails.map((detail) => (
-                <Grid item key={detail.id}>
-                  <Card>
-                    <CardActionArea onClick={() => setMainImage(detail.images)}>
-                      <CardMedia
-                        component='img'
-                        style={{ height: '90px', width: '90px' }}
-                        image={detail.images}
-                        alt={product?.name}
-                      />
-                    </CardActionArea>
-                  </Card>
-                </Grid>
-              ))}
-            </Grid>
-          </Grid>
-        </Grid>
+    <Container maxWidth="lg" sx={{ py: 4 }}>
+      <Grid container spacing={4}>
+        {/* Phần hình ảnh sản phẩm */}
         <Grid item xs={12} md={6}>
-          <Typography variant='h4' gutterBottom sx={{ fontWeight: 'bold' }}>
-            {product?.name}
-          </Typography>
-          <Typography
-            variant='body1'
-            gutterBottom
-            sx={{ opacity: 0.5, marginBottom: '10px', fontSize: 14 }}
-          >
-            Chất liệu: {product?.material}
-          </Typography>
-          <Typography
-            variant='h5'
-            gutterBottom
-            sx={{ fontWeight: 'bold', marginY: '20px', color: 'red' }}
-          >
-            {formatVietnameseCurrency(product?.price)} VND
-          </Typography>
-
-          <Typography
-            variant='h6'
-            gutterBottom
-            sx={{ fontSize: '16px', marginTop: '30px' }}
-          >
-            Màu sắc: {selectedColor.name}
-          </Typography>
-          <Grid container spacing={1}>
-            {productTemp?.productDetails
-              // Lọc bỏ các màu trùng lặp
-              .filter(
-                (detail, index, self) =>
-                  index ===
-                  self.findIndex((t) => t.color.id === detail.color.id),
-              )
-              // Map qua danh sách màu
-              .map((detail) => (
-                <Grid item key={detail.color.id}>
-                  <Button
-                    variant='contained'
-                    style={{
-                      backgroundColor: detail.color.hex,
-                      width: '30px',
-                      height: '30px',
-                      boxShadow:
-                        selectedColor?.id === detail.color.id
-                          ? '0 0 0 2px #fff, 0 0 0 4px ' + detail.color.hex
-                          : 'none',
-                    }}
-                    onClick={() => {
-                      setSelectedColor(detail.color);
-                      setSelectedSize(null);
-                    }}
-                  />
-                </Grid>
-              ))}
-          </Grid>
-
-          <Typography
-            variant='h6'
-            gutterBottom
-            sx={{ fontSize: '16px', marginTop: '20px' }}
-          >
-            Kích cỡ: {selectedSize?.name}
-          </Typography>
-          <Grid container spacing={1}>
-            {productTemp?.productDetails
-              // Lọc bỏ các kích thước trùng lặp
-              .filter(
-                (detail, index, self) =>
-                  index === self.findIndex((t) => t.size.id === detail.size.id),
-              )
-              // Map qua danh sách kích thước
-              .map((detail) => (
-                <Grid item key={detail.size.id}>
-                  <Button
-                    variant='contained'
-                    style={{
-                      width: 'auto',
-                      whiteSpace: 'nowrap',
-                      backgroundColor: listSizeActive.includes(detail.size.id)
-                        ? selectedSize?.id === detail.size.id
-                          ? '#2196f3'
-                          : '#ffffff'
-                        : '#f0f0f0', // Màu nền khi nút bị vô hiệu hóa
-                      color: listSizeActive.includes(detail.size.id)
-                        ? selectedSize?.id === detail.size.id
-                          ? '#fff'
-                          : '#000'
-                        : '#a0a0a0', // Màu chữ khi nút bị vô hiệu hóa
-                      boxShadow: listSizeActive.includes(detail.size.id)
-                        ? selectedSize?.id === detail.size.id
-                          ? '0 0 0 2px #fff, 0 0 0 4px #2196f3'
-                          : '0 0 0 2px #C0C0C0'
-                        : '0 0 0 2px #e0e0e0', // Bóng khi nút bị vô hiệu hóa
-                    }}
-                    onClick={() => handleChangeSize(detail)}
-                    disabled={!listSizeActive.includes(detail.size.id)}
-                  >
-                    {detail.size.name}
-                  </Button>
-                </Grid>
-              ))}
-          </Grid>
-
-          <Grid
-            container
-            spacing={1}
-            alignItems='center'
-            style={{ marginTop: '20px' }}
-          >
-            <Grid item>
-              <IconButton onClick={decreaseQuantity}>
-                <RemoveCircleOutline />
-              </IconButton>
-            </Grid>
-            <Grid item>
-              <TextField
-                id='quantity'
-                variant='filled'
-                error={error != ''} // Hiển thị viền đỏ khi có lỗi
-                InputProps={{
-                  inputProps: { min: 1, style: { textAlign: 'center' } },
-                  style: {
-                    width: '50px',
-                    height: '40px',
-                    background: '#FFFFFF',
-                    textAlign: 'center',
-                  },
-                }}
-                value={quantity}
-                onChange={handleQuantityChange}
-              />
-            </Grid>
-            <Grid item>
-              <IconButton onClick={increaseQuantity}>
-                <AddCircleOutline />
-              </IconButton>
-            </Grid>
-
-            <Grid item>
-              <Typography variant='body1'>
-                Còn lại {remainingQuantity} sản phẩm
-              </Typography>
-            </Grid>
-          </Grid>
-          {!(selectedColor && selectedSize) && (
-            <Typography variant='body1' style={{ color: 'red' }}>
-              Vui lòng chọn màu, kích cỡ và số lượng hợp lệ
-            </Typography>
-          )}
-          {error && (
-            <Typography variant='body1' style={{ color: 'red' }}>
-              {error}
-            </Typography>
-          )}
-
-          <Grid item style={{ marginTop: '40px' }}>
-            <Button
-              variant='contained'
-              color='primary'
-              disabled={
-                !(
-                  selectedColor &&
-                  selectedSize &&
-                  quantity > 0 &&
-                  remainingQuantity > quantity
-                )
-              }
-              onClick={addToCartHandler}
+          <Box sx={{ position: 'sticky', top: 20 }}>
+            {/* Hình ảnh chính */}
+            <Paper 
+              elevation={3} 
+              sx={{ 
+                borderRadius: '16px', 
+                overflow: 'hidden',
+                marginBottom: 2
+              }}
             >
-              Thêm vào giỏ hàng
-            </Button>
-          </Grid>
-          <br />
-          {/* Thêm các thuộc tính khác vào đây */}
-          <Typography variant='h6' gutterBottom style={{ fontWeight: 'bold', fontSize: '1.2rem' }}>
-            Đặc điểm nổi bật:
-          </Typography>
-          <Typography variant='body1' gutterBottom>
-            Chất liệu: {product?.material}
-          </Typography>
-          <Typography variant='body1' gutterBottom>
-            Nhà cung cấp: {product?.supplier.name}
-          </Typography>
-          <Typography variant='body1' gutterBottom>
-            Địa chỉ nhà cung cấp: {product?.supplier.address}
-          </Typography>
-          <Typography variant='body1' gutterBottom>
-            Email nhà cung cấp: {product?.supplier.email}
-          </Typography>
-          <Grid container spacing={2} sx={{ marginTop: 2 }}>
-            <Grid item xs={12} md={6}>
-              <div
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  marginBottom: '16px',
+              <CardMedia
+                component='img'
+                sx={{ 
+                  width: '100%', 
+                  height: '600px',
+                  objectFit: 'cover'
                 }}
-              >
-                <div>
-                  <img
-                    src='https://www.coolmate.me/images/icons/icon3.svg'
-                    alt='Đổi trả với số điện thoại'
-                  />
-                </div>
-                <Typography
-                  variant='body2'
-                  sx={{ fontSize: '14px', marginLeft: '10px' }}
+                image={
+                  mainImage || (product?.images ? product.images[0] : null)
+                }
+                alt={product?.name}
+              />
+            </Paper>
+            
+            {/* Thumbnail images */}
+            <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+              {product?.productDetails.map((detail) => (
+                <Paper
+                  key={detail.id}
+                  elevation={2}
+                  sx={{ 
+                    borderRadius: '8px',
+                    overflow: 'hidden',
+                    cursor: 'pointer',
+                    border: mainImage === detail.images ? '2px solid #1976d2' : '2px solid transparent',
+                    transition: 'all 0.3s ease',
+                    '&:hover': {
+                      transform: 'scale(1.05)',
+                      boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+                    }
+                  }}
+                  onClick={() => setMainImage(detail.images)}
                 >
-                  Đổi trả cực dễ chỉ cần liên hệ trực tiếp với cửa hàng qua Hotline
-                </Typography>
-              </div>
-              <div
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  marginBottom: '16px',
-                }}
-              >
-                <div>
-                  <img
-                    src='https://www.coolmate.me/images/icons/icon5.svg'
-                    alt='Đổi hàng trong 60 ngày'
+                  <CardMedia
+                    component='img'
+                    sx={{ height: '80px', width: '80px', objectFit: 'cover' }}
+                    image={detail.images}
+                    alt={product?.name}
                   />
-                </div>
-                <Typography
-                  variant='body2'
-                  sx={{ fontSize: '14px', marginLeft: '10px' }}
-                >
-                  10 ngày đổi trả vì bất kỳ lý do gì từ cửa hàng
-                </Typography>
-              </div>
-            </Grid>
+                </Paper>
+              ))}
+            </Box>
+          </Box>
+        </Grid>
 
-            <br />
-            <Grid item xs={12} md={6}>
-              <div
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  marginBottom: '16px',
-                }}
-              >
-                <div>
-                  <img
-                    src='https://www.coolmate.me/images/icons/icon2.svg'
-                    alt='Hotline 0388 343 898'
-                    style={{ width: '25px' }}
-                  />
-                </div>
-                <Typography
-                  variant='body2'
-                  sx={{ fontSize: '14px', marginLeft: '10px' }}
-                >
-                  Hotline 0388 343 898 hỗ trợ từ 8h30 - 22h mỗi ngày
-                </Typography>
-              </div>
-              <div
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  marginBottom: '16px',
-                }}
-              >
-                <div>
-                  <img
-                    src='https://www.coolmate.me/images/icons/icon1.svg'
-                    alt='Trả hàng tận nơi'
-                  />
-                </div>
-                <Typography
-                  variant='body2'
-                  sx={{ fontSize: '14px', marginLeft: '10px' }}
-                >
-                  Đến cửa hàng nhận hoàn trả hàng, hoàn tiền trong 24h
-                </Typography>
-              </div>
-            </Grid>
-          </Grid>
+        {/* Phần thông tin sản phẩm */}
+        <Grid item xs={12} md={6}>
+          <Box sx={{ position: 'sticky', top: 20 }}>
+            {/* Tên sản phẩm */}
+            <Typography 
+              variant='h3' 
+              sx={{ 
+                fontWeight: 'bold',
+                color: '#2c3e50',
+                marginBottom: 2,
+                lineHeight: 1.2
+              }}
+            >
+              {product?.name}
+            </Typography>
 
+            {/* Giá sản phẩm */}
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, marginBottom: 3 }}>
+              <Typography
+                variant='h4'
+                sx={{ 
+                  fontWeight: 'bold', 
+                  color: '#e74c3c',
+                  fontSize: '2.5rem'
+                }}
+              >
+                {formatVietnameseCurrency(product?.price)} ₫
+              </Typography>
+              <Chip 
+                label="HOT" 
+                color="error" 
+                size="small"
+                sx={{ fontWeight: 'bold' }}
+              />
+            </Box>
+
+            {/* Thông tin cơ bản */}
+            <Paper sx={{ p: 2, marginBottom: 3, backgroundColor: '#f8f9fa' }}>
+              <Typography variant='body1' sx={{ color: '#6c757d', marginBottom: 1 }}>
+                📦 Chất liệu: <strong>{product?.material}</strong>
+              </Typography>
+              <Typography variant='body1' sx={{ color: '#6c757d' }}>
+                🏢 Nhà cung cấp: <strong>{product?.supplier?.name}</strong>
+              </Typography>
+            </Paper>
+
+            {/* Chọn màu sắc */}
+            <Box sx={{ marginBottom: 3 }}>
+              <Typography variant='h6' sx={{ fontWeight: 'bold', marginBottom: 2, color: '#2c3e50' }}>
+                🎨 Màu sắc: {selectedColor?.name}
+              </Typography>
+              <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+                {productTemp?.productDetails
+                  .filter(
+                    (detail, index, self) =>
+                      index ===
+                      self.findIndex((t) => t.color.id === detail.color.id),
+                  )
+                  .map((detail) => (
+                    <Button
+                      key={detail.color.id}
+                      variant='contained'
+                      sx={{
+                        backgroundColor: detail.color.hex,
+                        width: '40px',
+                        height: '40px',
+                        minWidth: '40px',
+                        borderRadius: '50%',
+                        boxShadow:
+                          selectedColor?.id === detail.color.id
+                            ? '0 0 0 3px #fff, 0 0 0 6px ' + detail.color.hex
+                            : '0 2px 8px rgba(0,0,0,0.2)',
+                        border: '1.5px solid #888',
+                        '&:hover': {
+                          transform: 'scale(1.1)',
+                          boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
+                        },
+                        transition: 'all 0.3s ease'
+                      }}
+                      onClick={() => {
+                        setSelectedColor(detail.color);
+                        setSelectedSize(null);
+                      }}
+                    />
+                  ))}
+              </Box>
+            </Box>
+
+            {/* Chọn kích cỡ */}
+            <Box sx={{ marginBottom: 3 }}>
+              <Typography variant='h6' sx={{ fontWeight: 'bold', marginBottom: 2, color: '#2c3e50' }}>
+                📏 Kích cỡ: {selectedSize?.name}
+              </Typography>
+              <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+                {productTemp?.productDetails
+                  .filter(
+                    (detail, index, self) =>
+                      index === self.findIndex((t) => t.size.id === detail.size.id),
+                  )
+                  .map((detail) => (
+                    <Button
+                      key={detail.size.id}
+                      variant={listSizeActive.includes(detail.size.id) ? 'contained' : 'outlined'}
+                      disabled={!listSizeActive.includes(detail.size.id)}
+                      sx={{
+                        borderRadius: '20px',
+                        fontWeight: 'bold',
+                        textTransform: 'none',
+                        backgroundColor: listSizeActive.includes(detail.size.id)
+                          ? selectedSize?.id === detail.size.id
+                            ? '#1976d2'
+                            : '#f5f5f5'
+                          : '#f0f0f0',
+                        color: listSizeActive.includes(detail.size.id)
+                          ? selectedSize?.id === detail.size.id
+                            ? '#fff'
+                            : '#333'
+                          : '#999',
+                        border: selectedSize?.id === detail.size.id
+                          ? '2px solid #1976d2'
+                          : '2px solid #e0e0e0',
+                        '&:hover': {
+                          backgroundColor: selectedSize?.id === detail.size.id
+                            ? '#1565c0'
+                            : '#e3f2fd',
+                          transform: 'translateY(-2px)',
+                        },
+                        transition: 'all 0.3s ease'
+                      }}
+                      onClick={() => handleChangeSize(detail)}
+                    >
+                      {detail.size.name}
+                    </Button>
+                  ))}
+              </Box>
+            </Box>
+
+            {/* Chọn số lượng */}
+            <Box sx={{ marginBottom: 3 }}>
+              <Typography variant='h6' sx={{ fontWeight: 'bold', marginBottom: 2, color: '#2c3e50' }}>
+                🔢 Số lượng
+              </Typography>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                <IconButton 
+                  onClick={decreaseQuantity}
+                  sx={{ 
+                    backgroundColor: '#f5f5f5',
+                    '&:hover': { backgroundColor: '#e0e0e0' }
+                  }}
+                >
+                  <RemoveCircleOutline />
+                </IconButton>
+                <TextField
+                  id='quantity'
+                  variant='outlined'
+                  error={error !== ''}
+                  InputProps={{
+                    inputProps: { min: 1, style: { textAlign: 'center' } },
+                    sx: {
+                      width: '80px',
+                      textAlign: 'center',
+                      fontWeight: 'bold'
+                    },
+                  }}
+                  value={quantity}
+                  onChange={handleQuantityChange}
+                />
+                <IconButton 
+                  onClick={increaseQuantity}
+                  sx={{ 
+                    backgroundColor: '#f5f5f5',
+                    '&:hover': { backgroundColor: '#e0e0e0' }
+                  }}
+                >
+                  <AddCircleOutline />
+                </IconButton>
+                <Typography variant='body2' sx={{ color: '#6c757d' }}>
+                  Còn lại: <strong>{remainingQuantity}</strong> sản phẩm
+                </Typography>
+              </Box>
+              {error && (
+                <Typography variant='body2' sx={{ color: '#e74c3c', marginTop: 1 }}>
+                  ⚠️ {error}
+                </Typography>
+              )}
+            </Box>
+
+            {/* Nút hành động */}
+            <Box sx={{ display: 'flex', gap: 2, marginBottom: 4 }}>
+              <Button
+                variant='contained'
+                size='large'
+                startIcon={<ShoppingCart />}
+                disabled={
+                  !(
+                    selectedColor &&
+                    selectedSize &&
+                    quantity > 0 &&
+                    remainingQuantity >= quantity
+                  )
+                }
+                onClick={addToCartHandler}
+                sx={{
+                  flex: 1,
+                  borderRadius: '12px',
+                  padding: '12px 24px',
+                  fontSize: '1.1rem',
+                  fontWeight: 'bold',
+                  textTransform: 'none',
+                  backgroundColor: '#27ae60',
+                  '&:hover': {
+                    backgroundColor: '#229954',
+                    transform: 'translateY(-2px)',
+                    boxShadow: '0 8px 16px rgba(39, 174, 96, 0.3)',
+                  },
+                  transition: 'all 0.3s ease'
+                }}
+              >
+                🛒 Thêm vào giỏ hàng
+              </Button>
+              <IconButton
+                sx={{
+                  backgroundColor: '#f5f5f5',
+                  '&:hover': { backgroundColor: '#e0e0e0' }
+                }}
+              >
+                <Favorite />
+              </IconButton>
+              <IconButton
+                sx={{
+                  backgroundColor: '#f5f5f5',
+                  '&:hover': { backgroundColor: '#e0e0e0' }
+                }}
+              >
+                <Share />
+              </IconButton>
+            </Box>
+
+            {/* Thông báo lỗi */}
+            {!(selectedColor && selectedSize) && (
+              <Paper sx={{ p: 2, backgroundColor: '#fff3cd', border: '1px solid #ffeaa7', marginBottom: 3 }}>
+                <Typography variant='body2' sx={{ color: '#856404', textAlign: 'center' }}>
+                  ⚠️ Vui lòng chọn màu sắc và kích cỡ
+                </Typography>
+              </Paper>
+            )}
+
+            <Divider sx={{ marginY: 3 }} />
+
+            {/* Thông tin chi tiết */}
+            <Box sx={{ marginBottom: 3 }}>
+              <Typography variant='h6' sx={{ fontWeight: 'bold', marginBottom: 2, color: '#2c3e50' }}>
+                📋 Thông tin chi tiết
+              </Typography>
+              <Paper sx={{ p: 2, backgroundColor: '#f8f9fa' }}>
+                <Typography variant='body2' sx={{ marginBottom: 1 }}>
+                  🏢 <strong>Nhà cung cấp:</strong> {product?.supplier?.name}
+                </Typography>
+                <Typography variant='body2' sx={{ marginBottom: 1 }}>
+                  📍 <strong>Địa chỉ:</strong> {product?.supplier?.address}
+                </Typography>
+                <Typography variant='body2' sx={{ marginBottom: 1 }}>
+                  📧 <strong>Email:</strong> {product?.supplier?.email}
+                </Typography>
+                <Typography variant='body2'>
+                  🏷️ <strong>Chất liệu:</strong> {product?.material}
+                </Typography>
+              </Paper>
+            </Box>
+
+            {/* Dịch vụ */}
+            <Box>
+              <Typography variant='h6' sx={{ fontWeight: 'bold', marginBottom: 2, color: '#2c3e50' }}>
+                🛡️ Dịch vụ của chúng tôi
+              </Typography>
+              <Grid container spacing={2}>
+                <Grid item xs={12} sm={6}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, marginBottom: 2 }}>
+                    <LocalShipping sx={{ color: '#27ae60' }} />
+                    <Typography variant='body2' sx={{ fontSize: '0.9rem' }}>
+                      Giao hàng miễn phí
+                    </Typography>
+                  </Box>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, marginBottom: 2 }}>
+                    <Security sx={{ color: '#3498db' }} />
+                    <Typography variant='body2' sx={{ fontSize: '0.9rem' }}>
+                      Bảo hành chính hãng
+                    </Typography>
+                  </Box>
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, marginBottom: 2 }}>
+                    <Refresh sx={{ color: '#f39c12' }} />
+                    <Typography variant='body2' sx={{ fontSize: '0.9rem' }}>
+                      Đổi trả 30 ngày
+                    </Typography>
+                  </Box>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, marginBottom: 2 }}>
+                    <Support sx={{ color: '#e74c3c' }} />
+                    <Typography variant='body2' sx={{ fontSize: '0.9rem' }}>
+                      Hỗ trợ 24/7
+                    </Typography>
+                  </Box>
+                </Grid>
+              </Grid>
+            </Box>
+          </Box>
         </Grid>
       </Grid>
     </Container>

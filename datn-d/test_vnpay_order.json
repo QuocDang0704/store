@@ -1,0 +1,19 @@
+{
+  "voucherId": null,
+  "total": 100000,
+  "totalInit": 100000,
+  "paymentMethods": "PaymentOverVnpay",
+  "shipPrice": 30000,
+  "description": "Test order with VNPay",
+  "address": "123 Test Street, Hanoi",
+  "phone": "0123456789",
+  "name": "Test User",
+  "orderDetailDtos": [
+    {
+      "productDetailId": 1,
+      "price": 50000,
+      "quantity": 2,
+      "totalPrice": 100000
+    }
+  ]
+} 

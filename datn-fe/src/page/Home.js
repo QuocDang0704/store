@@ -5,7 +5,6 @@ import {
   Typography,
   Grid,
   Card,
-  CardActionArea,
   CardMedia,
   CardContent,
   Container,
@@ -77,6 +76,7 @@ const Home = () => {
     setProducts(res?.response?.content);
     console.log(res?.response?.content);
     setCount(res?.response?.totalElements);
+    console.log(res?.response)
     setIsLoading(false);
   };
 
@@ -154,11 +154,13 @@ const Home = () => {
                     🔍 Tìm kiếm sản phẩm
                   </Typography>
                   <div style={{ marginTop: '20px' }}>
-                    <label style={{ fontWeight: 'bold', fontSize: '1.2rem', color: '#333', marginBottom: '8px', display: 'block' }}>Tên sản phẩm</label>
+                    <label style={{ fontWeight: 'bold', fontSize: '1.2rem', color: '#333', marginBottom: '8px', display: 'block' }}>
+                      📝 Tên sản phẩm
+                    </label>
                     <TextField
                       name='searchName'
                       id='searchName'
-                      placeholder='Nhập tên sản phẩm'
+                      placeholder='Nhập tên sản phẩm bạn muốn tìm...'
                       variant='outlined'
                       value={search?.name || ''}
                       fullWidth
@@ -180,12 +182,14 @@ const Home = () => {
                     />
                   </div>
                   <div style={{ marginTop: '20px' }}>
-                    <label style={{ fontWeight: 'bold', fontSize: '1.2rem', color: '#333', marginBottom: '8px', display: 'block' }}>Khoảng giá từ</label>
+                    <label style={{ fontWeight: 'bold', fontSize: '1.2rem', color: '#333', marginBottom: '8px', display: 'block' }}>
+                      💰 Khoảng giá từ
+                    </label>
                     <TextField
                       name='minPrice'
                       id='minPrice'
                       type='text'
-                      placeholder='Nhập giá tối thiểu'
+                      placeholder='Giá tối thiểu (VND)'
                       variant='outlined'
                       value={search?.minPrice || ''}
                       fullWidth
@@ -207,12 +211,14 @@ const Home = () => {
                     />
                   </div>
                   <div style={{ marginTop: '20px' }}>
-                    <label style={{ fontWeight: 'bold', fontSize: '1.2rem', color: '#333', marginBottom: '8px', display: 'block' }}>Khoảng giá đến</label>
+                    <label style={{ fontWeight: 'bold', fontSize: '1.2rem', color: '#333', marginBottom: '8px', display: 'block' }}>
+                      💰 Khoảng giá đến
+                    </label>
                     <TextField
                       name='maxPrice'
                       id='maxPrice'
                       type='text'
-                      placeholder='Nhập giá tối đa'
+                      placeholder='Giá tối đa (VND)'
                       variant='outlined'
                       value={search?.maxPrice || ''}
                       fullWidth
@@ -234,7 +240,9 @@ const Home = () => {
                     />
                   </div>
                   <div style={{ marginTop: '20px' }}>
-                    <label style={{ fontWeight: 'bold', fontSize: '1.2rem', color: '#333', marginBottom: '8px', display: 'block' }}>Danh mục</label>
+                    <label style={{ fontWeight: 'bold', fontSize: '1.2rem', color: '#333', marginBottom: '8px', display: 'block' }}>
+                      📂 Danh mục
+                    </label>
                     <FormControl fullWidth variant="outlined" margin="normal">
                       <Select
                         labelId="category-label"
@@ -259,7 +267,7 @@ const Home = () => {
                         }}
                       >
                         <MenuItem value=" ">
-                          <em>Tất cả danh mục</em>
+                          <em>🏠 Tất cả danh mục</em>
                         </MenuItem>
                         {listCategory.map((category) => (
                           <MenuItem key={category.id} value={category.id}>
@@ -270,7 +278,9 @@ const Home = () => {
                     </FormControl>
                   </div>
                   <div style={{ marginTop: '20px' }}>
-                    <label style={{ fontWeight: 'bold', fontSize: '1.2rem', color: '#333', marginBottom: '8px', display: 'block' }}>Nhà cung cấp</label>
+                    <label style={{ fontWeight: 'bold', fontSize: '1.2rem', color: '#333', marginBottom: '8px', display: 'block' }}>
+                      🏢 Nhà cung cấp
+                    </label>
                     <FormControl fullWidth variant="outlined" margin="normal">
                       <Select
                         labelId="supplier-label"
@@ -278,13 +288,6 @@ const Home = () => {
                         name="supplierId"
                         label="Nhà cung cấp"
                         value={search?.supplierId || ''}
-                        onChange={(e) => {
-                          const value = e.target.value;
-                          document
-                            .getElementById('supplierId')
-                            .setAttribute('value', value);
-                          setSearch({ ...search, supplierId: value });
-                        }}
                         sx={{
                           '& .MuiOutlinedInput-root': {
                             borderRadius: '8px',
@@ -293,9 +296,16 @@ const Home = () => {
                             },
                           },
                         }}
+                        onChange={(e) => {
+                          const value = e.target.value;
+                          document
+                            .getElementById('supplierId')
+                            .setAttribute('value', value);
+                          setSearch({ ...search, supplierId: value });
+                        }}
                       >
                         <MenuItem value=" ">
-                          <em>Tất cả nhà cung cấp</em>
+                          <em>🏢 Tất cả nhà cung cấp</em>
                         </MenuItem>
                         {listSupplier.map((supplier) => (
                           <MenuItem key={supplier.id} value={supplier.id}>
@@ -369,101 +379,296 @@ const Home = () => {
           </Paper>
         </Grid>
         <Grid item xs={12} sm={10}>
+          {/* Header section cho khách hàng */}
+          <Box sx={{ 
+            backgroundColor: '#f8f9fa', 
+            borderRadius: '12px', 
+            p: 3, 
+            mb: 3,
+            border: '1px solid #e9ecef'
+          }}>
+            <Grid container spacing={2} alignItems="center">
+              <Grid item xs={12} md={6}>
+                <Typography variant="h5" sx={{ 
+                  fontWeight: 'bold', 
+                  color: '#2c3e50',
+                  marginBottom: 1
+                }}>
+                  🛍️ Khám phá sản phẩm
+                </Typography>
+                <Typography variant="body1" sx={{ color: '#6c757d' }}>
+                  Tìm thấy {count} sản phẩm chất lượng cao
+                </Typography>
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2, flexWrap: 'wrap' }}>
+                  <Button
+                    variant='outlined'
+                    size='small'
+                    sx={{ 
+                      borderRadius: '20px',
+                      borderColor: '#28a745',
+                      color: '#28a745',
+                      '&:hover': {
+                        borderColor: '#28a745',
+                        backgroundColor: '#28a745',
+                        color: 'white'
+                      }
+                    }}
+                  >
+                    🔥 Sản phẩm nổi bật
+                  </Button>
+                  <Button
+                    variant='outlined'
+                    size='small'
+                    sx={{ 
+                      borderRadius: '20px',
+                      borderColor: '#ffc107',
+                      color: '#ffc107',
+                      '&:hover': {
+                        borderColor: '#ffc107',
+                        backgroundColor: '#ffc107',
+                        color: 'white'
+                      }
+                    }}
+                  >
+                    ⭐ Đánh giá cao
+                  </Button>
+                </Box>
+              </Grid>
+            </Grid>
+          </Box>
+
           <Stack
             direction='row'
             spacing={2}
-            justifyContent='flex-start'
-            sx={{ marginBottom: 2 }}
+            justifyContent='space-between'
+            alignItems='center'
+            sx={{ marginBottom: 3 }}
           >
-            <Button
-              variant='outlined'
-              color='info'
-              sx={{ 
-                borderRadius: '20px',
-                padding: '8px 16px',
-                fontSize: '0.9rem',
-                fontWeight: 'bold',
-                textTransform: 'none',
-                borderWidth: '2px',
-                '&:hover': {
+            <Typography variant="h6" sx={{ fontWeight: 'bold', color: '#2c3e50' }}>
+              Sắp xếp theo:
+            </Typography>
+            <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
+              <Button
+                variant='outlined'
+                color='info'
+                sx={{ 
+                  borderRadius: '20px',
+                  padding: '8px 16px',
+                  fontSize: '0.9rem',
+                  fontWeight: 'bold',
+                  textTransform: 'none',
                   borderWidth: '2px',
-                  transform: 'translateY(-1px)',
-                  boxShadow: '0 4px 8px rgba(3, 169, 244, 0.3)',
-                },
-                transition: 'all 0.3s ease'
-              }}
-              endIcon={<Icon as={ArrowUpward} />}
-              onClick={() => {
-                setSortType('price,asc');
-              }}
-            >
-              Giá tăng dần
-            </Button>
-            <Button
-              variant='outlined'
-              color='secondary'
-              sx={{ 
-                borderRadius: '20px',
-                padding: '8px 16px',
-                fontSize: '0.9rem',
-                fontWeight: 'bold',
-                textTransform: 'none',
-                borderWidth: '2px',
-                '&:hover': {
+                  '&:hover': {
+                    borderWidth: '2px',
+                    transform: 'translateY(-1px)',
+                    boxShadow: '0 4px 8px rgba(3, 169, 244, 0.3)',
+                  },
+                  transition: 'all 0.3s ease'
+                }}
+                endIcon={<Icon as={ArrowUpward} />}
+                onClick={() => {
+                  setSortType('price,asc');
+                }}
+              >
+                Giá tăng dần
+              </Button>
+              <Button
+                variant='outlined'
+                color='secondary'
+                sx={{ 
+                  borderRadius: '20px',
+                  padding: '8px 16px',
+                  fontSize: '0.9rem',
+                  fontWeight: 'bold',
+                  textTransform: 'none',
                   borderWidth: '2px',
-                  transform: 'translateY(-1px)',
-                  boxShadow: '0 4px 8px rgba(156, 39, 176, 0.3)',
-                },
-                transition: 'all 0.3s ease'
-              }}
-              endIcon={<Icon as={ArrowDownward} />}
-              onClick={() => {
-                setSortType('price,desc');
-              }}
-            >
-              Giá giảm dần
-            </Button>
+                  '&:hover': {
+                    borderWidth: '2px',
+                    transform: 'translateY(-1px)',
+                    boxShadow: '0 4px 8px rgba(156, 39, 176, 0.3)',
+                  },
+                  transition: 'all 0.3s ease'
+                }}
+                endIcon={<Icon as={ArrowDownward} />}
+                onClick={() => {
+                  setSortType('price,desc');
+                }}
+              >
+                Giá giảm dần
+              </Button>
+            </Box>
           </Stack>
           <Grid container spacing={3}>
-            {products?.map((product) => (
-              <Grid
-                item
-                xs={6}
-                sm={4}
-                md={3}
-                key={product?.id}
-                onClick={() => navigate('/product/' + product?.id)}
-              >
-                <Card sx={{ border: '1px solid #e0e0e0' }}>
-                  <CardActionArea>
-                    <CardMedia
-                      component='img'
-                      height='450'
-                      image={product?.images}
-                      alt={product?.name}
-                      sx={{ objectFit: 'cover' }}
-                    />
-                    <CardContent>
-                      <Typography
-                        noWrap
-                        variant='body2'
-                        gutterBottom
-                        sx={{ fontWeight: 'bold', fontSize: '1.2rem' }}
-                      >
-                        {product?.name}
-                      </Typography>
-                      <Typography
-                        variant='body2'
-                        color='text.secondary'
-                        sx={{ fontWeight: 'bold', color: 'red' }}
-                      >
-                        Giá: {formatVietnameseCurrency(product?.price)} VND
-                      </Typography>
-                    </CardContent>
-                  </CardActionArea>
-                </Card>
+            {products?.length > 0 ? (
+              products?.map((product) => (
+                <Grid
+                  item
+                  xs={6}
+                  sm={4}
+                  md={3}
+                  key={product?.id}
+                >
+                  <Card 
+                    sx={{ 
+                      border: '1px solid #e0e0e0',
+                      borderRadius: '12px',
+                      overflow: 'hidden',
+                      transition: 'all 0.3s ease',
+                      cursor: 'pointer',
+                      '&:hover': {
+                        transform: 'translateY(-8px)',
+                        boxShadow: '0 12px 24px rgba(0,0,0,0.15)',
+                        borderColor: '#1976d2',
+                      },
+                      position: 'relative'
+                    }}
+                  >
+                    <Box sx={{ height: '100%' }}>
+                      <Box sx={{ position: 'relative' }}>
+                        <CardMedia
+                          component='img'
+                          height='280'
+                          image={product?.images}
+                          alt={product?.name}
+                          sx={{ 
+                            objectFit: 'cover',
+                            transition: 'transform 0.3s ease',
+                            '&:hover': {
+                              transform: 'scale(1.05)',
+                            }
+                          }}
+                          onClick={() => navigate('/product/' + product?.id)}
+                        />
+                        {/* Badge cho sản phẩm mới hoặc giảm giá */}
+                        <Box
+                          sx={{
+                            position: 'absolute',
+                            top: '10px',
+                            left: '10px',
+                            backgroundColor: '#ff4757',
+                            color: 'white',
+                            padding: '4px 8px',
+                            borderRadius: '12px',
+                            fontSize: '0.75rem',
+                            fontWeight: 'bold',
+                            zIndex: 1
+                          }}
+                        >
+                          HOT
+                        </Box>
+                      </Box>
+                      <CardContent sx={{ p: 2, height: '120px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                        <Typography
+                          variant='body2'
+                          sx={{ 
+                            fontWeight: 'bold', 
+                            fontSize: '1rem',
+                            lineHeight: '1.3',
+                            height: '2.6em',
+                            overflow: 'hidden',
+                            display: '-webkit-box',
+                            WebkitLineClamp: 2,
+                            WebkitBoxOrient: 'vertical',
+                            color: '#2c3e50',
+                            marginBottom: '8px',
+                            cursor: 'pointer'
+                          }}
+                          onClick={() => navigate('/product/' + product?.id)}
+                        >
+                          {product?.name}
+                        </Typography>
+                        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                          <Typography
+                            variant='body2'
+                            sx={{ 
+                              fontWeight: 'bold', 
+                              color: '#e74c3c',
+                              fontSize: '1.1rem',
+                              textAlign: 'center'
+                            }}
+                          >
+                            {formatVietnameseCurrency(product?.price)} ₫
+                          </Typography>
+                          <Button
+                            variant='contained'
+                            size='small'
+                            sx={{
+                              borderRadius: '20px',
+                              fontSize: '0.8rem',
+                              fontWeight: 'bold',
+                              textTransform: 'none',
+                              backgroundColor: '#27ae60',
+                              '&:hover': {
+                                backgroundColor: '#229954',
+                                transform: 'scale(1.05)',
+                              },
+                              transition: 'all 0.3s ease'
+                            }}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              // Thêm vào giỏ hàng logic ở đây
+                              toast.success('🛒 Đã thêm vào giỏ hàng!');
+                            }}
+                          >
+                            🛒 Thêm vào giỏ
+                          </Button>
+                        </Box>
+                      </CardContent>
+                    </Box>
+                  </Card>
+                </Grid>
+              ))
+            ) : (
+              <Grid item xs={12}>
+                <Box sx={{ 
+                  textAlign: 'center', 
+                  py: 8,
+                  backgroundColor: '#f8f9fa',
+                  borderRadius: '12px',
+                  border: '2px dashed #dee2e6'
+                }}>
+                  <Typography variant="h5" sx={{ 
+                    color: '#6c757d', 
+                    marginBottom: 2,
+                    fontWeight: 'bold'
+                  }}>
+                    😔 Không tìm thấy sản phẩm
+                  </Typography>
+                  <Typography variant="body1" sx={{ color: '#6c757d', marginBottom: 3 }}>
+                    Hãy thử thay đổi tiêu chí tìm kiếm hoặc xem các sản phẩm khác
+                  </Typography>
+                  <Button
+                    variant='contained'
+                    color='primary'
+                    onClick={() => {
+                      setSearch({
+                        name: '',
+                        minPrice: '',
+                        maxPrice: '',
+                        categoryId: '',
+                        supplierId: '',
+                      });
+                      document.getElementById('searchName').value = '';
+                      document.getElementById('minPrice').value = '';
+                      document.getElementById('maxPrice').value = '';
+                      document.getElementById('categoryId').setAttribute('value', " ");
+                      document.getElementById('supplierId').setAttribute('value', " ");
+                    }}
+                    sx={{
+                      borderRadius: '20px',
+                      padding: '10px 20px',
+                      fontSize: '1rem',
+                      fontWeight: 'bold',
+                      textTransform: 'none'
+                    }}
+                  >
+                    🔄 Xem tất cả sản phẩm
+                  </Button>
+                </Box>
               </Grid>
-            ))}
+            )}
           </Grid>
           <Grid item xs={12} >
             <Paper 
@@ -476,67 +681,60 @@ const Home = () => {
               }}
             >
               <Stack
-                direction='row'
-                spacing={2}
-                justifyContent='space-between'
-                alignItems='center'
+                direction="row"
+                alignItems="center"
+                justifyContent="space-between"
                 sx={{ marginBottom: 1 }}
               >
-                <Grid item xs={12} md={4}>
-                  <Button
-                    variant='contained'
-                    disabled={page === 1}
-                    sx={{
-                      borderRadius: '8px',
-                      padding: '8px 16px',
-                      fontSize: '0.9rem',
-                      fontWeight: 'bold',
-                      textTransform: 'none',
-                      '&:hover': {
-                        transform: 'translateY(-1px)',
-                        boxShadow: '0 4px 8px rgba(25, 118, 210, 0.3)',
-                      },
-                      transition: 'all 0.3s ease'
-                    }}
-                    onClick={() => setPage(page - 1)}
-                  >
-                    ⬅️ Trước
-                  </Button>
-                </Grid>
-                <Grid item xs={12} md={4}>
-                  <Typography 
-                    variant='body1' 
-                    sx={{ 
-                      textAlign: 'center',
-                      fontWeight: 'bold',
-                      color: '#1976d2',
-                      fontSize: '1.1rem'
-                    }}
-                  >
-                    Trang {page} trên {Math.ceil(count / pageSize)}
-                  </Typography>
-                </Grid>
-                <Grid item xs={12} md={4}>
-                  <Button
-                    variant='contained'
-                    disabled={page === Math.ceil(count / pageSize) || count === 0}
-                    sx={{
-                      borderRadius: '8px',
-                      padding: '8px 16px',
-                      fontSize: '0.9rem',
-                      fontWeight: 'bold',
-                      textTransform: 'none',
-                      '&:hover': {
-                        transform: 'translateY(-1px)',
-                        boxShadow: '0 4px 8px rgba(25, 118, 210, 0.3)',
-                      },
-                      transition: 'all 0.3s ease'
-                    }}
-                    onClick={() => setPage(page + 1)}
-                  >
-                    Tiếp ➡️
-                  </Button>
-                </Grid>
+                <Button
+                  variant="contained"
+                  disabled={page === 1}
+                  sx={{
+                    borderRadius: '8px',
+                    padding: '8px 16px',
+                    fontSize: '0.9rem',
+                    fontWeight: 'bold',
+                    textTransform: 'none',
+                    '&:hover': {
+                      transform: 'translateY(-1px)',
+                      boxShadow: '0 4px 8px rgba(25, 118, 210, 0.3)',
+                    },
+                    transition: 'all 0.3s ease'
+                  }}
+                  onClick={() => setPage(page - 1)}
+                >
+                  ⬅️ Trước
+                </Button>
+                <Typography
+                  variant="body1"
+                  sx={{
+                    textAlign: 'center',
+                    fontWeight: 'bold',
+                    color: '#1976d2',
+                    fontSize: '1.1rem'
+                  }}
+                >
+                  Trang {page} trên {Math.ceil(count / pageSize)}
+                </Typography>
+                <Button
+                  variant="contained"
+                  disabled={page === Math.ceil(count / pageSize) || count === 0}
+                  sx={{
+                    borderRadius: '8px',
+                    padding: '8px 16px',
+                    fontSize: '0.9rem',
+                    fontWeight: 'bold',
+                    textTransform: 'none',
+                    '&:hover': {
+                      transform: 'translateY(-1px)',
+                      boxShadow: '0 4px 8px rgba(25, 118, 210, 0.3)',
+                    },
+                    transition: 'all 0.3s ease'
+                  }}
+                  onClick={() => setPage(page + 1)}
+                >
+                  Tiếp ➡️
+                </Button>
               </Stack>
             </Paper>
           </Grid>
