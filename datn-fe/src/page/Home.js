@@ -214,7 +214,7 @@ const Home = () => {
                     </FormControl>
                   </div>
                   <div>
-                    <label style={{ fontWeight: 'bold', fontSize: '1.2rem' }}>Danh mục</label>
+                    <label style={{ fontWeight: 'bold', fontSize: '1.2rem' }}>Nhà cung cấp</label>
                     <FormControl fullWidth variant="outlined" margin="normal">
                       <Select
                         labelId="category-label"
