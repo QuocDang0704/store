@@ -57,7 +57,7 @@ public class OrderService {
         return oderRepository.findByIdOrThrow(id);
     }
 
-    public OrderResponseDto createOder(OrderDto req, jakarta.servlet.http.HttpServletRequest request) {
+    public OrderResponseDto createOder(OrderDto req) {
         if (req.getVoucherId() != null) {
             Voucher voucher = voucherRepository.findByIdOrThrow(req.getVoucherId());
             voucher.setQuantity(voucher.getQuantity() - 1);
@@ -105,7 +105,7 @@ public class OrderService {
         OrderResponseDto orderResponseDto = MapperUtils.map(order, OrderResponseDto.class);
         if (req.getPaymentMethods().toString().equals(Constant.PaymentMethods.PaymentOverVnpay.toString())) {
             try {
-                String linkPay = vnPayService.getPay(orderSave.getTotal(), order.getId(), request);
+                String linkPay = vnPayService.getPay(orderSave.getTotal(), order.getId());
                 orderResponseDto.setLink(linkPay);
             } catch (Exception e) {
                 throw new BadRequestException(e.getMessage());

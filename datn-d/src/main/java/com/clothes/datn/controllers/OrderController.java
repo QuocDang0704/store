@@ -50,8 +50,8 @@ public class OrderController {
     @PostMapping()
     @Operation(summary = "Tạo đơn hàng",
             description= "Chú ý KH không đăng nhập sẽ để userId là 0, đăng nhập thì để là null hoặc khác 0")
-    public ResponseDTO createColor(@RequestBody OrderDto req, jakarta.servlet.http.HttpServletRequest request) {
-        return ResponseDTO.success(orderService.createOder(req, request));
+    public ResponseDTO createOder(@RequestBody OrderDto req) {
+        return ResponseDTO.success(orderService.createOder(req));
     }
 
     @PutMapping("/{id}")
@@ -80,10 +80,8 @@ public class OrderController {
     }
 
     @GetMapping("payment-callback")
-    public void paymentCallback(@RequestParam Map<String, String> queryParams, 
-                               jakarta.servlet.http.HttpServletRequest request,
-                               HttpServletResponse response) throws IOException {
-        vnPayService.paymentCallback(queryParams, request, response);
+    public void paymentCallback(@RequestParam Map<String, String> queryParams, HttpServletResponse response) throws IOException {
+        vnPayService.paymentCallback(queryParams, response);
     }
 
     @GetMapping("/getTotalAmountByMonth")
@@ -94,27 +92,6 @@ public class OrderController {
     @GetMapping("/getTotalImportAmountByMonth")
     public ResponseDTO getTotalImportAmountByMonth(@RequestParam String year) {
         return ResponseDTO.success(orderService.getTotalImportAmountByMonth(year));
-    }
-
-    @GetMapping("/test-vnpay-signature")
-    @Operation(summary = "Test chữ ký số VNPay", description = "Dùng để debug lỗi 'Sai chữ ký'")
-    public ResponseDTO testVnPaySignature() {
-        vnPayService.testSignature();
-        return ResponseDTO.success("Check logs for VNPay signature test results");
-    }
-
-    @GetMapping("/test-vnpay-official")
-    @Operation(summary = "Test với dữ liệu mẫu chính thức VNPay", description = "So sánh với tài liệu VNPay")
-    public ResponseDTO testVnPayOfficial() {
-        vnPayService.testWithOfficialSample();
-        return ResponseDTO.success("Check logs for VNPay official sample test results");
-    }
-
-    @GetMapping("/test-vnpay-order")
-    @Operation(summary = "Test mô phỏng tạo đơn hàng VNPay", description = "Mô phỏng chính xác quá trình tạo đơn hàng")
-    public ResponseDTO testVnPayOrder() {
-        vnPayService.testOrderCreation();
-        return ResponseDTO.success("Check logs for VNPay order creation test results");
     }
 
     @GetMapping("/getListYear")
