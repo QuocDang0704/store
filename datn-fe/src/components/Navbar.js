@@ -55,7 +55,7 @@ function Navbar() {
           variant='h6'
           component='div'
           sx={{ cursor: 'pointer', fontSize: '22px', fontWeight: 500, marginRight: 5  }}
-          onClick={() => navigate('/')}
+          onClick={() => navigate('/about')}
         >
           Giới thiệu
         </Typography>

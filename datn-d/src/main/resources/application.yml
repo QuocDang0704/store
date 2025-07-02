@@ -1,0 +1,36 @@
+spring:
+  datasource:
+    url: jdbc:mysql://localhost:3306/db_backup
+    username: bernie@742
+    password: bernie@742
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: false
+management:
+  security:
+    enabled: false
+kidi:
+  uri:
+    path: http://localhost:8080/
+application:
+  security:
+    jwt:
+      secret-key: 404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970
+      expiration: 86400000
+      refresh-token:
+        expiration: 604800000
+logging:
+  level:
+    com.clothes.datn.vnpay: DEBUG
+    com.clothes.datn.controllers.OrderController: DEBUG
+# http://localhost:8080/swagger-ui/index.html
+# Ngân hàng: NCB
+# Số thẻ: 9704198526191432198
+# Tên chủ thẻ: NGUYEN VAN A
+# Ngày phát hành: 07/15
+# Mật khẩu: 123456 

@@ -12,6 +12,7 @@ import Register from '../page/Register';
 import AddressPage from '../page/Address';
 import Test from '../page/Test';
 import OrderDetails from '../page/OrderDetails';
+import About from '../page/About';
 
 export const RouteConfig = [
   {
@@ -53,6 +54,10 @@ export const RouteConfig = [
   {
     path: '/test',
     element: <Test />,
+  },
+  {
+    path: '/about',
+    element: <About />,
   },
   {
     path: '/',

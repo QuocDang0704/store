@@ -93,4 +93,9 @@ public class ProductController {
     public ResponseDTO getAllProductDetail(Pageable pageable, String name) {
         return ResponseDTO.success(productService.getAllProductDetail(pageable, name));
     }
+
+    @GetMapping("/full/{id}")
+    public ResponseDTO getFullProductById(@PathVariable("id") Long id) {
+        return ResponseDTO.success(productService.getById(id));
+    }
 }

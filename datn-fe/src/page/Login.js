@@ -30,8 +30,8 @@ function Copyright(props) {
       {...props}
     >
       {'Copyright © '}
-      <Link color='inherit' href='https://mui.com/'>
-        Your Website
+      <Link color='inherit' href='/'>
+        KidsShop
       </Link>{' '}
       {new Date().getFullYear()}
       {'.'}
@@ -41,7 +41,16 @@ function Copyright(props) {
 
 // TODO remove, this demo shouldn't need to reset the theme.
 
-const defaultTheme = createTheme();
+const defaultTheme = createTheme({
+  palette: {
+    primary: {
+      main: '#4fc3f7', // Màu xanh dương nhạt
+    },
+    secondary: {
+      main: '#f06292', // Màu hồng nhạt
+    },
+  },
+});
 
 export default function Login() {
   const navigate = useNavigate();
@@ -113,11 +122,11 @@ export default function Login() {
               alignItems: 'center',
             }}
           >
-            <Avatar sx={{ m: 1, bgcolor: 'secondary.main' }}>
+            <Avatar sx={{ m: 1, bgcolor: 'primary.main' }}>
               <LockOutlinedIcon />
             </Avatar>
-            <Typography component='h1' variant='h5'>
-              Đăng nhập
+            <Typography component='h1' variant='h5' sx={{ fontWeight: 'bold', color: 'primary.main' }}>
+              Đăng nhập KidsShop
             </Typography>
             <Box
               component='form'
@@ -130,7 +139,7 @@ export default function Login() {
                 required
                 fullWidth
                 id='username'
-                label='Tài khoản'
+                label='Tên đăng nhập'
                 name='username'
                 autoComplete='username'
                 autoFocus
@@ -154,13 +163,13 @@ export default function Login() {
                     color='primary'
                   />
                 }
-                label='Ghi nhớ'
+                label='Ghi nhớ đăng nhập'
               />
               <Button
                 type='submit'
                 fullWidth
                 variant='contained'
-                sx={{ mt: 3, mb: 2 }}
+                sx={{ mt: 3, mb: 2, fontWeight: 'bold', fontSize: 16 }}
               >
                 {isLoading ? <CircularProgress color='inherit' /> : 'Đăng nhập'}
               </Button>
@@ -172,7 +181,7 @@ export default function Login() {
                 </Grid>
                 <Grid item>
                   <Link href='/register' variant='body2'>
-                    {'Chưa có tài khoản? Đăng ký'}
+                    {'Chưa có tài khoản? Đăng ký KidsShop'}
                   </Link>
                 </Grid>
               </Grid>

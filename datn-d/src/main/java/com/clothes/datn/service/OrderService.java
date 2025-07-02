@@ -58,103 +58,61 @@ public class OrderService {
     }
 
     public OrderResponseDto createOder(OrderDto req) {
-        if (req.getPaymentMethods() != null && req.getPaymentMethods().toString().equals(Constant.PaymentMethods.PaymentOverVnpay.toString())) {
-            String linkPay;
-            try {
-                Order tempOrder = Order.builder()
-                        .total(req.getTotal())
-                        .build();
-                linkPay = vnPayService.getPay(tempOrder.getTotal(), null);
-            } catch (Exception e) {
-                throw new BadRequestException("Thanh toán VNPay lỗi: " + e.getMessage());
-            }
-            if (req.getVoucherId() != null) {
-                Voucher voucher = voucherRepository.findByIdOrThrow(req.getVoucherId());
-                voucher.setQuantity(voucher.getQuantity() - 1);
-            }
-            Order order = Order
-                    .builder()
-                    .code(Ramdom.generateOrderCode())
-                    .isPayment(false)
-                    .total(req.getTotal())
-                    .totalInit(req.getTotalInit())
-                    .status(Constant.OderStatus.WaitForConfirmation)
-                    .paymentMethods(req.getPaymentMethods())
-                    .shipPrice(req.getShipPrice())
-                    .description(req.getDescription())
-                    .address(req.getAddress())
-                    .phone(req.getPhone())
-                    .name(req.getName())
-                    .build();
-            User user = userService.getCurrentUser();
-            order.setUser(User.builder().id(user.getId()).build());
-            // Order orderSave = this.oderRepository.save(order);
-            List<OrderDetail> details = req.getOrderDetailDtos().stream().map(dto -> {
-                ProductDetail productDetail = this.productDetailRepository.findByIdOrThrow(dto.getProductDetailId());
-                Long quantity = productDetail.getQuantity() - dto.getQuantity();
-                if (quantity > 0) {
-                    productDetail.setQuantity(quantity);
-                    productDetailRepository.save(productDetail);
-                } else {
-                    throw new NotFoundException("Số lượng trong kho không đủ");
-                }
-                return OrderDetail
-                        .builder()
-                        // .order(orderSave)
-                        .productDetail(ProductDetail.builder().id(dto.getProductDetailId()).build())
-                        .price(dto.getPrice())
-                        .quantity(dto.getQuantity())
-                        .totalPrice(dto.getTotalPrice())
-                        .build();
-            }).collect(Collectors.toList());
-            this.oderDetailRepository.saveAll(details);
-            OrderResponseDto orderResponseDto = MapperUtils.map(order, OrderResponseDto.class);
-            orderResponseDto.setLink(linkPay);
-            return orderResponseDto;
-        } else {
-            if (req.getVoucherId() != null) {
-                Voucher voucher = voucherRepository.findByIdOrThrow(req.getVoucherId());
-                voucher.setQuantity(voucher.getQuantity() - 1);
-            }
-            Order order = Order
-                    .builder()
-                    .code(Ramdom.generateOrderCode())
-                    .isPayment(false)
-                    .total(req.getTotal())
-                    .totalInit(req.getTotalInit())
-                    .status(Constant.OderStatus.WaitForConfirmation)
-                    .paymentMethods(req.getPaymentMethods())
-                    .shipPrice(req.getShipPrice())
-                    .description(req.getDescription())
-                    .address(req.getAddress())
-                    .phone(req.getPhone())
-                    .name(req.getName())
-                    .build();
-            User user = userService.getCurrentUser();
-            order.setUser(User.builder().id(user.getId()).build());
-            Order orderSave = this.oderRepository.save(order);
-            List<OrderDetail> details = req.getOrderDetailDtos().stream().map(dto -> {
-                ProductDetail productDetail = this.productDetailRepository.findByIdOrThrow(dto.getProductDetailId());
-                Long quantity = productDetail.getQuantity() - dto.getQuantity();
-                if (quantity > 0) {
-                    productDetail.setQuantity(quantity);
-                    productDetailRepository.save(productDetail);
-                } else {
-                    throw new NotFoundException("Số lượng trong kho không đủ");
-                }
-                return OrderDetail
-                        .builder()
-                        .order(orderSave)
-                        .productDetail(ProductDetail.builder().id(dto.getProductDetailId()).build())
-                        .price(dto.getPrice())
-                        .quantity(dto.getQuantity())
-                        .totalPrice(dto.getTotalPrice())
-                        .build();
-            }).collect(Collectors.toList());
-            this.oderDetailRepository.saveAll(details);
-            OrderResponseDto orderResponseDto = MapperUtils.map(order, OrderResponseDto.class);
-            return orderResponseDto;
+        if (req.getVoucherId() != null) {
+            Voucher voucher = voucherRepository.findByIdOrThrow(req.getVoucherId());
+            voucher.setQuantity(voucher.getQuantity() - 1);
         }
+
+        Order order = Order
+                .builder()
+                .code(Ramdom.generateOrderCode())
+                .isPayment(false)
+                .total(req.getTotal())
+                .totalInit(req.getTotalInit())
+                .status(Constant.OderStatus.WaitForConfirmation)
+                .paymentMethods(req.getPaymentMethods())
+                .shipPrice(req.getShipPrice())
+                .description(req.getDescription())
+                .address(req.getAddress())
+                .phone(req.getPhone())
+                .name(req.getName())
+                .build();
+
+        User user = userService.getCurrentUser();
+        order.setUser(User.builder().id(user.getId()).build());
+        Order orderSave = this.oderRepository.save(order);
+
+        List<OrderDetail> details = req.getOrderDetailDtos().stream().map(dto -> {
+            ProductDetail productDetail = this.productDetailRepository.findByIdOrThrow(dto.getProductDetailId());
+            Long quantity = productDetail.getQuantity() - dto.getQuantity();
+            if (quantity > 0) {
+                productDetail.setQuantity(quantity);
+                productDetailRepository.save(productDetail);
+            } else {
+                new NotFoundException("Số lương trong kho không dủ");
+            }
+
+            return OrderDetail
+                    .builder()
+                    .order(orderSave)
+                    .productDetail(ProductDetail.builder().id(dto.getProductDetailId()).build())
+                    .price(dto.getPrice())
+                    .quantity(dto.getQuantity())
+                    .totalPrice(dto.getTotalPrice())
+                    .build();
+        }).collect(Collectors.toList());
+        this.oderDetailRepository.saveAll(details);
+        OrderResponseDto orderResponseDto = MapperUtils.map(order, OrderResponseDto.class);
+        if (req.getPaymentMethods().toString().equals(Constant.PaymentMethods.PaymentOverVnpay.toString())) {
+            try {
+                String linkPay = vnPayService.getPay(orderSave.getTotal(), order.getId());
+                orderResponseDto.setLink(linkPay);
+            } catch (Exception e) {
+                throw new BadRequestException(e.getMessage());
+            }
+        }
+
+        return orderResponseDto;
     }
 
     public Order updateOrder(OrderDto dto) {
