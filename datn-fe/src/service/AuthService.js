@@ -114,6 +114,18 @@ const AuthService = {
       }
     }
   },
+  getUserId: () => {
+    const refreshToken =
+      localStorage.getItem('refresh_token') ??
+      sessionStorage.getItem('refresh_token');
+    if (refreshToken) {
+      const decodeToken = parseJwt(refreshToken);
+      if (decodeToken && decodeToken.id) {
+        return decodeToken.id;
+      }
+    }
+    return '';
+  },
   getClientId: () => {
     const refreshToken =
       localStorage.getItem('refresh_token') ??

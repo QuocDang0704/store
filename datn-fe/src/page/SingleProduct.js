@@ -11,6 +11,8 @@ import {
   Paper,
   Chip,
   Divider,
+  Avatar,
+  Rating,
 } from '@mui/material';
 import ProductService from '../service/ProductService';
 import { useParams } from 'react-router-dom';
@@ -25,13 +27,18 @@ import {
   Security,
   Refresh,
   Support,
+  RateReview,
+  Send,
 } from '@mui/icons-material';
 import { toast } from 'react-toastify';
 import { useNavigate } from 'react-router-dom';
+import FeedbackService from '../service/FeedbackService';
+import AuthService from '../service/AuthService';
 
 const SingleProduct = () => {
   const navigate = useNavigate();
   const { id } = useParams();
+  const userId = AuthService.getUserId();
 
   const [product, setProduct] = useState(null);
   const [productTemp, setProductTemp] = useState(null);
@@ -42,6 +49,10 @@ const SingleProduct = () => {
   const [remainingQuantity, setRemainingQuantity] = useState(0);
   const [listSizeActive, setListSizeActive] = useState([]);
   const [error, setError] = useState('');
+  const [feedbacks, setFeedbacks] = useState([]);
+  const [showFeedbackForm, setShowFeedbackForm] = useState(false);
+  const [feedbackText, setFeedbackText] = useState('');
+  const [feedbackVote, setFeedbackVote] = useState(5);
 
   useEffect(() => {
     fetchProduct();
@@ -95,6 +106,9 @@ const SingleProduct = () => {
     var productDetail = response?.response.productDetails[0];
     setSelectedColor(productDetail.color);
     setSelectedSize(productDetail.size);
+
+    const feedbacks = await FeedbackService.getFeedbacksByProductId(id);
+    setFeedbacks(feedbacks?.response);
   };
   const updateRemainingQuantity = () => {
     if (selectedColor && selectedSize) {
@@ -157,6 +171,23 @@ const SingleProduct = () => {
       ?.toString()
       .replace(/\B(?=(\d{3})+(?!\d))/g, ',');
     return formattedValue;
+  };
+
+  const handleAddFeedback = async () => {
+    const feedback = {
+      userId: userId,
+      productId: product.id,
+      feedbackText: feedbackText,
+      vote: feedbackVote,
+    };
+    const res = await FeedbackService.addFeedback(feedback);
+    if (res?.code == '0') {
+      toast.success('Thêm nhận xét thành công');
+      setShowFeedbackForm(false);
+      setFeedbackText('');
+      setFeedbackVote(5);
+      fetchProduct();
+    }
   };
   
   return (
@@ -524,6 +555,172 @@ const SingleProduct = () => {
                   </Box>
                 </Grid>
               </Grid>
+            </Box>
+            {/* Nhận xét sản phẩm */}
+            <Divider sx={{ marginY: 3 }} />
+            <Box sx={{ marginBottom: 3 }}>
+              <Typography variant='h6' sx={{ fontWeight: 'bold', marginBottom: 2, color: '#2c3e50' }}>
+                📝 Nhận xét sản phẩm
+              </Typography>
+              {feedbacks.length === 0 ? (
+                <Typography variant="body2" color="text.secondary">
+                  Chưa có nhận xét nào cho sản phẩm này.
+                </Typography>
+              ) : (
+                feedbacks.map((fb) => (
+                  <Paper key={fb.id} sx={{ p: 2, mb: 2, backgroundColor: '#f8f9fa' }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                      <Avatar sx={{ mr: 2 }}>{fb.userName ? fb.userName[0] : "?"}</Avatar>
+                      <Box>
+                        <Typography variant="subtitle2" sx={{ fontWeight: 'bold' }}>
+                          {fb.userName || "Ẩn danh"}
+                        </Typography>
+                        <Typography variant="caption" color="text.secondary">
+                          {new Date(fb.createdAt).toLocaleDateString()}
+                        </Typography>
+                      </Box>
+                      <Box sx={{ flexGrow: 1 }} />
+                      <Rating value={fb.vote} readOnly size="small" />
+                    </Box>
+                    <Typography variant="body2">{fb.feedbackText}</Typography>
+                  </Paper>
+                ))
+              )}
+              <Box sx={{ display: 'flex', justifyContent: 'center', gap: 2, mt: 3, mb: 2 }}>
+                <Button 
+                  variant="contained" 
+                  size="large" 
+                  startIcon={
+                    <Box sx={{
+                      background: 'linear-gradient(135deg, #fff 60%, #1976d2 100%)',
+                      borderRadius: '50%',
+                      p: 0.7,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      boxShadow: '0 2px 8px rgba(25, 118, 210, 0.15)',
+                    }}>
+                      <RateReview sx={{ color: '#1976d2', fontSize: 28 }} />
+                    </Box>
+                  }
+                  onClick={() => setShowFeedbackForm(true)}
+                  sx={{
+                    borderRadius: '32px',
+                    px: 4,
+                    py: 1.5,
+                    fontWeight: 'bold',
+                    background: 'linear-gradient(90deg, #1976d2 0%, #42a5f5 100%)',
+                    color: '#fff',
+                    boxShadow: '0 4px 24px 0 rgba(25, 118, 210, 0.18)',
+                    textTransform: 'none',
+                    fontSize: '1.1rem',
+                    letterSpacing: 1,
+                    transition: 'all 0.3s cubic-bezier(.4,2,.3,1)',
+                    '&:hover': {
+                      background: 'linear-gradient(90deg, #1565c0 0%, #1976d2 100%)',
+                      boxShadow: '0 0 16px 4px #42a5f5, 0 8px 32px 0 rgba(25, 118, 210, 0.25)',
+                      filter: 'brightness(1.08)',
+                      transform: 'scale(1.045)',
+                    },
+                  }}
+                >
+                  Thêm nhận xét
+                </Button>
+              </Box>
+              {showFeedbackForm && (
+                <Paper sx={{ p: 2, mt: 2, backgroundColor: '#f8f9fa' }}>
+                  <Typography variant="subtitle1" sx={{ fontWeight: 'bold', mb: 1 }}>
+                    Thêm nhận xét của bạn
+                  </Typography>
+                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                    <Typography variant="body2" sx={{ mr: 1 }}>
+                      Đánh giá:
+                    </Typography>
+                    <Rating
+                      value={feedbackVote}
+                      onChange={(_, newValue) => setFeedbackVote(newValue)}
+                    />
+                  </Box>
+                  <TextField
+                    label="Nhận xét của bạn"
+                    multiline
+                    minRows={3}
+                    fullWidth
+                    value={feedbackText}
+                    onChange={e => setFeedbackText(e.target.value)}
+                    sx={{ mb: 2 }}
+                  />
+                  <Box sx={{ display: 'flex', justifyContent: 'center', gap: 2, mt: 2 }}>
+                    <Button 
+                      variant="contained" 
+                      color="success" 
+                      size="large"
+                      startIcon={
+                        <Box sx={{
+                          background: 'linear-gradient(135deg, #fff 60%, #43a047 100%)',
+                          borderRadius: '50%',
+                          p: 0.7,
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          boxShadow: '0 2px 8px rgba(67, 160, 71, 0.15)',
+                        }}>
+                          <Send sx={{ color: '#43a047', fontSize: 28 }} />
+                        </Box>
+                      }
+                      onClick={handleAddFeedback}
+                      sx={{
+                        borderRadius: '32px',
+                        px: 4,
+                        py: 1.5,
+                        fontWeight: 'bold',
+                        background: 'linear-gradient(90deg, #43e97b 0%, #38f9d7 100%)',
+                        color: '#fff',
+                        boxShadow: '0 4px 24px 0 rgba(67, 160, 71, 0.18)',
+                        textTransform: 'none',
+                        fontSize: '1.1rem',
+                        letterSpacing: 1,
+                        transition: 'all 0.3s cubic-bezier(.4,2,.3,1)',
+                        '&:hover': {
+                          background: 'linear-gradient(90deg, #43a047 0%, #66bb6a 100%)',
+                          boxShadow: '0 0 16px 4px #38f9d7, 0 8px 32px 0 rgba(67, 160, 71, 0.25)',
+                          filter: 'brightness(1.08)',
+                          transform: 'scale(1.045)',
+                        },
+                      }}
+                    >
+                      Gửi nhận xét
+                    </Button>
+                    <Button 
+                      variant="outlined" 
+                      size="large" 
+                      onClick={() => setShowFeedbackForm(false)}
+                      sx={{
+                        borderRadius: '32px',
+                        px: 4,
+                        py: 1.5,
+                        fontWeight: 'bold',
+                        textTransform: 'none',
+                        fontSize: '1.1rem',
+                        color: '#1976d2',
+                        border: '2px solid',
+                        background: 'rgba(255,255,255,0.7)',
+                        boxShadow: '0 2px 8px rgba(25, 118, 210, 0.08)',
+                        letterSpacing: 1,
+                        transition: 'all 0.3s cubic-bezier(.4,2,.3,1)',
+                        '&:hover': {
+                          background: 'linear-gradient(90deg, #e3f2fd 0%, #bbdefb 100%)',
+                          color: '#1565c0',
+                          boxShadow: '0 0 12px 2px #42a5f5',
+                          transform: 'scale(1.03)',
+                        },
+                      }}
+                    >
+                      Hủy
+                    </Button>
+                  </Box>
+                </Paper>
+              )}
             </Box>
           </Box>
         </Grid>

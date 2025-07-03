@@ -1,7 +1,9 @@
 import axios from 'axios';
 import { toast } from 'react-toastify';
 
-let API_URL = 'http://localhost:8080'; // Thay đổi API_URL thành địa chỉ API của bạn
+export const API_BASE_URL = 'http://localhost:8080/api/v1'; // Dùng chung cho toàn bộ service
+
+let API_URL = 'http://localhost:8080'; // Giữ lại nếu cần cho instance cũ
 
 const instance = axios.create({
   baseURL: API_URL,
