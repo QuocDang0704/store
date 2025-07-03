@@ -1,8 +1,9 @@
 import axios from 'axios';
 import AuthService from './AuthService';
 import HandleError from '../utils/HandleError';
+import { API_BASE_URL } from '../config/api';
 
-const API_URL = 'http://localhost:8080/api/v1/product';
+const API_URL = API_BASE_URL + '/product';
 
 const ProductService = {
   getProduct: async (req) => {

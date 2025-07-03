@@ -1,8 +1,9 @@
 import axios from 'axios';
 import { Buffer } from 'buffer';
 import HandleError from '../utils/HandleError';
+import { API_BASE_URL } from '../config/api';
 
-const API_URL = 'http://localhost:8080/api/v1/auth';
+const API_URL = API_BASE_URL + '/auth';
 const parseJwt = (token) => {
   return JSON.parse(Buffer.from(token.split('.')[1], 'base64').toString());
 };

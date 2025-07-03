@@ -1,10 +1,11 @@
 import axios from 'axios';
 import AuthService from './AuthService';
 import HandleError from '../utils/HandleError';
+import { API_BASE_URL } from '../config/api';
 
-const API_URL_Address = 'http://localhost:8080/api/v1/address';
-const API_URL_Voucher = 'http://localhost:8080/api/v1/voucher';
-const API_URL_User = 'http://localhost:8080/api/v1/user';
+const API_URL_Address = API_BASE_URL + '/address';
+const API_URL_Voucher = API_BASE_URL + '/voucher';
+const API_URL_User = API_BASE_URL + '/user';
 
 const UserService = {
   getaddress: async () => {

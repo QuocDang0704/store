@@ -1,8 +1,9 @@
 import axios from 'axios';
 import HandleError from '../utils/HandleError';
 import AuthService from './AuthService';
+import { API_BASE_URL } from '../config/api';
 
-const API_URL = 'http://localhost:8080/api/v1/feedbacks';
+const API_URL = API_BASE_URL + '/feedbacks';
 
 const FeedbackService = {
   getFeedbacksByProductId: async (id) => {

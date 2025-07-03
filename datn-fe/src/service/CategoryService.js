@@ -1,8 +1,9 @@
 import axios from 'axios';
 import AuthService from './AuthService';
 import HandleError from '../utils/HandleError';
+import { API_BASE_URL } from '../config/api';
 
-const API_URL = 'http://localhost:8080/api/v1/category';
+const API_URL = API_BASE_URL + '/category';
 
 const CategoryService = {
   getAll: async (req) => {
