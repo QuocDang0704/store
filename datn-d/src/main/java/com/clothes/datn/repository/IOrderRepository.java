@@ -38,4 +38,6 @@ public interface IOrderRepository extends IBaseRepository<Order, Long> {
 
     @Query(value = "SELECT YEAR(o.created_date) AS YEAR from `order` o GROUP BY YEAR(o.created_date)", nativeQuery = true)
     List<Object[]> findListYear();
+
+    List<Order> findByIsPaymentFalseAndPaymentMethods(Constant.PaymentMethods paymentMethods);
 }

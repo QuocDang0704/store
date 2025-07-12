@@ -26,12 +26,12 @@ import {
   Alert,
 } from '@mui/material';
 import { DataGrid } from '@mui/x-data-grid';
-import { 
-  Edit, 
-  LocalShipping, 
-  ShoppingCart, 
-  CheckCircle, 
-  Cancel, 
+import {
+  Edit,
+  LocalShipping,
+  ShoppingCart,
+  CheckCircle,
+  Cancel,
   Schedule,
   Close,
   Warning,
@@ -47,6 +47,10 @@ import { Stack as MuiStack } from '@mui/system';
 import { toast } from 'react-toastify';
 
 const listActiveTab = [
+  {
+    value: 'WaitingForPayment',
+    name: 'Chờ thanh toán',
+  },
   {
     value: 'WaitForConfirmation',
     name: 'Chờ xác nhận',
@@ -86,16 +90,26 @@ function Order() {
   const fetchData = async () => {
     var req = {
       sort: ['id,desc'],
-      status: activeTab,
+      status: activeTab === 'WaitingForPayment' ? 'WaitForConfirmation' : activeTab,
     };
     const res = await OrderService.getAllOrdersByStatus(req);
-    const data = res?.response?.content?.map((item, index) => {
+    let data = res?.response?.content?.map((item, index) => {
       return {
         ...item,
         paymentMethods: item.paymentMethods == "PaymentOnDelivery" ? "Thanh toán khi nhận hàng" : "Thanh toán qua Vnpay",
       }
-    });
-    console.log(data);
+    }) || [];
+    if (activeTab === 'WaitingForPayment') {
+      data = data.filter(item => item.paymentMethods === 'Thanh toán qua Vnpay' && item.isPayment === false);
+    }
+    if (activeTab === 'WaitForConfirmation') {
+      data = data.filter(item => (
+        (item.paymentMethods === 'Thanh toán qua Vnpay' && item.isPayment !== false)
+        || item.paymentMethods === 'Thanh toán khi nhận hàng'
+      )
+      );
+    }
+
     setListElements(data);
     setIsLoading(false);
   };
@@ -161,9 +175,16 @@ function Order() {
   const handleUpdateStatus = async (item) => {
     console.log(item);
     setIsLoading(true);
-    const res = await OrderService.updateOrderStatusById(orderItem.id, {
-      status: item.value,
-    });
+    if (item.value === 'Payment') {
+      const res = await OrderService.unpaidVnpayOrders(orderItem.id);
+      console.log(res?.response);
+      window.location.href = res?.response?.link;
+    } else {
+      const res = await OrderService.updateOrderStatusById(orderItem.id, {
+        status: item.value,
+      });
+    }
+
     handleCloseModal();
     toast.success('Cập nhật đơn hàng thành công');
     await fetchData();
@@ -185,7 +206,7 @@ function Order() {
         }}
       >
         {/* Header */}
-        <Box sx={{ 
+        <Box sx={{
           background: 'linear-gradient(135deg, #1976d2 0%, #1565c0 100%)',
           color: 'white',
           p: 3,
@@ -205,9 +226,9 @@ function Order() {
                 </Typography>
               </Box>
             </Box>
-            <IconButton 
+            <IconButton
               onClick={handleCloseModal}
-              sx={{ 
+              sx={{
                 color: 'white',
                 '&:hover': { bgcolor: 'rgba(255,255,255,0.1)' }
               }}
@@ -284,6 +305,11 @@ function Order() {
                         }}
                       />
                     </Box>
+                    {activeTab === 'WaitingForPayment' && (
+                      <Alert severity="warning" sx={{ mb: 2 }}>
+                        Đơn hàng này chưa được thanh toán qua VNPAY.
+                      </Alert>
+                    )}
                     <Box sx={{ mb: 2 }}>
                       <Typography variant="body2" color="text.secondary">
                         Phương thức thanh toán
@@ -479,6 +505,16 @@ function Order() {
 
                           </Box>
 
+                          {activeTab === 'WaitingForPayment' && (
+                            <Box mb={1}>
+                              <Chip
+                                label="Chưa thanh toán qua VNPAY"
+                                color="warning"
+                                sx={{ fontWeight: 'bold', fontSize: '0.8rem', mb: 1 }}
+                              />
+                            </Box>
+                          )}
+
                           <Divider sx={{ my: 1.5 }} />
 
                           {/* Thông tin khách hàng */}
@@ -556,7 +592,21 @@ function Order() {
                               startIcon={<Edit />}
                               sx={{ borderRadius: '20px', flex: 1 }}
                               onClick={() => {
-                                if (order.status === 'WaitForConfirmation') {
+                                if (order.status === 'WaitForConfirmation'
+                                  && order.paymentMethods === 'Thanh toán qua Vnpay'
+                                  && order.isPayment === false
+                                ) {
+                                  setListStatusChange([
+                                    {
+                                      value: 'Cancel',
+                                      name: 'Hủy đơn hàng',
+                                    },
+                                    {
+                                      value: 'Payment',
+                                      name: 'Thanh toán đơn hàng',
+                                    },
+                                  ]);
+                                } else if (order.status === 'WaitForConfirmation') {
                                   setListStatusChange([
                                     {
                                       value: 'Cancel',

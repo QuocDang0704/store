@@ -25,11 +25,11 @@ import {
   Badge,
 } from '@mui/material';
 import { DataGrid } from '@mui/x-data-grid';
-import { 
-  Edit, 
-  ShoppingCart, 
-  LocalShipping, 
-  CheckCircle, 
+import {
+  Edit,
+  ShoppingCart,
+  LocalShipping,
+  CheckCircle,
   Cancel,
   Schedule,
   Visibility,
@@ -42,6 +42,13 @@ import HandleError from '../utils/HandleError';
 import Loading from '../utils/Loading';
 
 const listActiveTab = [
+  {
+    value: 'WaitingForPayment',
+    name: 'Chờ thanh toán',
+    icon: <AttachMoney />, // Bổ sung icon
+    color: '#f44336',
+    bgColor: '#ffebee',
+  },
   {
     value: 'WaitForConfirmation',
     name: 'Chờ xác nhận',
@@ -97,22 +104,38 @@ function OrderPage() {
   const fetchAllStatusData = async () => {
     try {
       const allStats = {};
-      
+      let listActiveTab_filter = listActiveTab.filter(item => item.value !== 'WaitingForPayment');
+
       // Fetch data for all statuses
-      for (const tab of listActiveTab) {
+      for (const tab of listActiveTab_filter) {
         try {
           const req = {
             sort: ['id,desc'],
             status: tab.value,
           };
           const res = await OrderService.getByStatus(req);
-          allStats[tab.value] = res?.response?.content?.length || 0;
+
+          let data = res?.response?.content?.map((item, index) => {
+            return {
+              ...item,
+              paymentMethods: item.paymentMethods == "PaymentOnDelivery" ? "Thanh toán khi nhận hàng" : "Thanh toán qua Vnpay",
+            }
+          }) || [];
+          if (tab.value === 'WaitForConfirmation') {
+            allStats['WaitingForPayment'] = data.filter(item => item.paymentMethods === 'Thanh toán qua Vnpay' && item.isPayment === false).length;
+            allStats['WaitForConfirmation'] = data.filter(item =>
+              (item.paymentMethods === 'Thanh toán qua Vnpay' && item.isPayment !== false)
+              || item.paymentMethods === 'Thanh toán khi nhận hàng'
+            ).length;
+          } else {
+            allStats[tab.value] = data?.length || 0;
+          }
         } catch (error) {
           console.error(`Error fetching data for status ${tab.value}:`, error);
           allStats[tab.value] = 0;
         }
       }
-      
+
       setStatusStats(allStats);
     } catch (error) {
       console.error('Error fetching all status data:', error);
@@ -124,15 +147,27 @@ function OrderPage() {
       setIsLoading(true);
       var req = {
         sort: ['id,desc'],
-        status: activeTab,
+        status: activeTab === 'WaitingForPayment' ? 'WaitForConfirmation' : activeTab,
       };
       const res = await OrderService.getByStatus(req);
-      const data = res?.response?.content?.map((item, index) => {
+      let data = res?.response?.content?.map((item, index) => {
         return {
           ...item,
           paymentMethods: item.paymentMethods == "PaymentOnDelivery" ? "Thanh toán khi nhận hàng" : "Thanh toán qua Vnpay",
         }
       });
+      console.log(data);
+      if (activeTab === 'WaitingForPayment') {
+        data = data.filter(item => item.paymentMethods === 'Thanh toán qua Vnpay' && item.isPayment === false);
+      }
+      if (activeTab === 'WaitForConfirmation') {
+        data = data.filter(item => (
+          (item.paymentMethods === 'Thanh toán qua Vnpay' && item.isPayment !== false)
+          || item.paymentMethods === 'Thanh toán khi nhận hàng'
+        )
+        );
+      }
+
       setListElements(data);
       setIsLoading(false);
     } catch (error) {
@@ -171,10 +206,10 @@ function OrderPage() {
       headerAlign: 'left',
       renderCell: (params) => (
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <Avatar sx={{ width: 32, height: 32, bgcolor: '#1976d2' }}>
+          <Avatar sx={{ width: 32, height: 32, bgcolor: '#1976d2', fontWeight: 700 }}>
             {params.value?.charAt(0)?.toUpperCase()}
           </Avatar>
-          <Typography variant="body2" fontWeight="500">
+          <Typography variant="body2" fontWeight="600">
             {params.value}
           </Typography>
         </Box>
@@ -183,18 +218,21 @@ function OrderPage() {
     {
       field: 'code',
       headerName: 'Mã đơn hàng',
-      width: 200,
-      align: 'left',
-      headerAlign: 'left',
+      width: 180,
+      align: 'center',
+      headerAlign: 'center',
       renderCell: (params) => (
         <Chip
           label={params.value}
           size="small"
-          variant="outlined"
+          variant="filled"
           sx={{ 
             fontFamily: 'monospace',
             fontWeight: 'bold',
-            backgroundColor: '#f5f5f5'
+            background: 'linear-gradient(90deg, #1976d2 0%, #2196f3 100%)',
+            color: '#fff',
+            boxShadow: 2,
+            borderRadius: 2
           }}
         />
       ),
@@ -202,7 +240,7 @@ function OrderPage() {
     {
       field: 'paymentMethods',
       headerName: 'Phương thức thanh toán',
-      width: 200,
+      width: 180,
       align: 'center',
       headerAlign: 'center',
       renderCell: (params) => (
@@ -211,18 +249,25 @@ function OrderPage() {
           label={params.value}
           size="small"
           color={params.value.includes('Vnpay') ? 'primary' : 'default'}
-          variant="outlined"
+          variant="filled"
+          sx={{ fontWeight: 600, boxShadow: 1, borderRadius: 2 }}
         />
       ),
     },
     {
       field: 'total',
       headerName: 'Tổng tiền',
-      width: 150,
-      align: 'right',
-      headerAlign: 'right',
+      width: 160,
+      align: 'center',
+      headerAlign: 'center',
       renderCell: (params) => (
-        <Typography variant="body2" fontWeight="bold" color="primary">
+        <Typography variant="h6" fontWeight="bold" sx={{
+          background: 'linear-gradient(90deg, #1976d2 0%, #2196f3 100%)',
+          WebkitBackgroundClip: 'text',
+          WebkitTextFillColor: 'transparent',
+          fontSize: 18,
+          textAlign: 'center',
+        }}>
           {formatVietnameseCurrency(params.value)} VND
         </Typography>
       ),
@@ -230,7 +275,7 @@ function OrderPage() {
     {
       field: 'status',
       headerName: 'Trạng thái',
-      width: 180,
+      width: 170,
       align: 'center',
       headerAlign: 'center',
       renderCell: (params) => {
@@ -244,11 +289,29 @@ function OrderPage() {
               backgroundColor: statusInfo.bgColor,
               color: statusInfo.color,
               fontWeight: 'bold',
-              border: `1px solid ${statusInfo.color}`,
+              border: `1.5px solid ${statusInfo.color}`,
+              boxShadow: 1,
+              borderRadius: 2
             }}
           />
         );
       },
+    },
+    {
+      field: 'isPayment',
+      headerName: 'Thanh toán',
+      width: 130,
+      align: 'center',
+      headerAlign: 'center',
+      renderCell: (params) => (
+        <Chip
+          label={params.value ? 'Đã thanh toán' : 'Chưa thanh toán'}
+          color={params.value ? 'success' : 'error'}
+          size="small"
+          variant="filled"
+          sx={{ fontWeight: 600, boxShadow: 1, borderRadius: 2 }}
+        />
+      ),
     },
     {
       field: 'description',
@@ -258,9 +321,9 @@ function OrderPage() {
       headerAlign: 'left',
       renderCell: (params) => (
         <Tooltip title={params.value || 'Không có mô tả'}>
-          <Typography 
-            variant="body2" 
-            sx={{ 
+          <Typography
+            variant="body2"
+            sx={{
               maxWidth: 200,
               overflow: 'hidden',
               textOverflow: 'ellipsis',
@@ -280,9 +343,9 @@ function OrderPage() {
       headerAlign: 'left',
       renderCell: (params) => (
         <Tooltip title={params.value}>
-          <Typography 
-            variant="body2" 
-            sx={{ 
+          <Typography
+            variant="body2"
+            sx={{
               maxWidth: 250,
               overflow: 'hidden',
               textOverflow: 'ellipsis',
@@ -323,7 +386,12 @@ function OrderPage() {
                 size="small"
                 color="primary"
                 onClick={() => {
-                  if (params.row.status === 'WaitForConfirmation') {
+                  if (params.row.status === 'WaitForConfirmation'
+                    && params.row.paymentMethods === 'Thanh toán qua Vnpay'
+                    && params.row.isPayment === false
+                  ) {
+                    setListStatusChange(null);
+                  } else if (params.row.status === 'WaitForConfirmation') {
                     setListStatusChange([
                       {
                         value: 'PreparingGoods',
@@ -393,14 +461,14 @@ function OrderPage() {
   return (
     <Box sx={{ backgroundColor: '#fffff', minHeight: '100vh', py: 3 }}>
       <Loading isLoading={isLoading} />
-      
+
       {/* Stats Cards */}
       <Container maxWidth="xl" sx={{ mb: 3 }}>
         <Grid container spacing={3}>
           {listActiveTab.map((tab) => (
             <Grid item xs={12} sm={6} md={2.4} key={tab.value}>
-              <Card 
-                sx={{ 
+              <Card
+                sx={{
                   height: '100%',
                   cursor: 'pointer',
                   transition: 'all 0.3s ease',
@@ -413,11 +481,11 @@ function OrderPage() {
                 onClick={() => handleTabClick(tab)}
               >
                 <CardContent sx={{ textAlign: 'center', py: 2 }}>
-                  <Box sx={{ 
-                    display: 'flex', 
-                    justifyContent: 'center', 
+                  <Box sx={{
+                    display: 'flex',
+                    justifyContent: 'center',
                     mb: 1,
-                    color: tab.color 
+                    color: tab.color
                   }}>
                     {tab.icon}
                   </Box>
@@ -437,9 +505,9 @@ function OrderPage() {
       {/* Main Content */}
       <Container maxWidth="xl">
         <Paper elevation={2} sx={{ borderRadius: 2, overflow: 'hidden' }}>
-          <Box sx={{ 
-            p: 3, 
-            backgroundColor: 'primary.main', 
+          <Box sx={{
+            p: 3,
+            backgroundColor: 'primary.main',
             color: 'white',
             display: 'flex',
             alignItems: 'center',
@@ -450,12 +518,12 @@ function OrderPage() {
               Quản lý đơn hàng
             </Typography>
           </Box>
-          
+
           <Box sx={{ p: 3 }}>
             <Typography variant="h6" gutterBottom sx={{ mb: 3 }}>
               Đơn hàng - {getStatusInfo(activeTab).name}
             </Typography>
-            
+
             <Box sx={{ height: 600, width: '100%' }}>
               <DataGrid
                 rows={listElements}
@@ -466,17 +534,60 @@ function OrderPage() {
                 }}
                 hideFooterPagination={false}
                 loading={isLoading}
+                rowSpacingType="margin"
                 sx={{
                   border: 'none',
-                  '& .MuiDataGrid-cell': {
-                    borderBottom: '1px solid #e0e0e0',
-                  },
+                  borderRadius: 4,
+                  boxShadow: 4,
+                  backgroundColor: '#fff',
+                  fontFamily: 'inherit',
                   '& .MuiDataGrid-columnHeaders': {
-                    backgroundColor: '#f8f9fa',
-                    borderBottom: '2px solid #e0e0e0',
+                    background: 'linear-gradient(90deg, #1976d2 0%, #2196f3 100%)',
+                    color: '#fff',
+                    fontWeight: 'bold',
+                    fontSize: 17,
+                    borderTopLeftRadius: 16,
+                    borderTopRightRadius: 16,
+                    borderBottom: '2.5px solid #1976d2',
+                    minHeight: 64,
+                    maxHeight: 64,
+                    boxShadow: '0 2px 8px 0 rgba(33,150,243,0.08)',
                   },
-                  '& .MuiDataGrid-row:hover': {
-                    backgroundColor: '#f5f5f5',
+                  '& .MuiDataGrid-cell': {
+                    borderBottom: '1.5px solid #e0e0e0',
+                    fontSize: 15,
+                    padding: '14px 10px',
+                    alignItems: 'center',
+                    fontWeight: 500,
+                  },
+                  '& .MuiDataGrid-row': {
+                    transition: 'background 0.2s, border-left 0.2s',
+                    marginBottom: 1.5,
+                    borderLeft: '4px solid transparent',
+                    '&:hover': {
+                      background: 'linear-gradient(90deg, #f0f7ff 0%, #e3f2fd 100%)',
+                      borderLeft: '4px solid #1976d2',
+                    },
+                  },
+                  '& .MuiDataGrid-row.Mui-selected': {
+                    backgroundColor: '#e3f2fd !important',
+                    borderLeft: '4px solid #1976d2',
+                  },
+                  '& .MuiDataGrid-selectedRowCount': {
+                    color: '#1976d2',
+                  },
+                  '& .MuiDataGrid-footerContainer': {
+                    borderTop: '1.5px solid #e0e0e0',
+                    background: '#fafbfc',
+                    borderBottomLeftRadius: 16,
+                    borderBottomRightRadius: 16,
+                    boxShadow: '0 -2px 8px 0 rgba(33,150,243,0.04)',
+                  },
+                  '& .MuiDataGrid-virtualScroller': {
+                    minHeight: 480,
+                  },
+                  '& .MuiDataGrid-cell:focus': {
+                    outline: 'none',
                   },
                 }}
               />
@@ -495,8 +606,8 @@ function OrderPage() {
           sx: { borderRadius: 2 }
         }}
       >
-        <DialogTitle sx={{ 
-          backgroundColor: 'primary.main', 
+        <DialogTitle sx={{
+          backgroundColor: 'primary.main',
           color: 'white',
           display: 'flex',
           alignItems: 'center',
@@ -509,7 +620,7 @@ function OrderPage() {
           <DialogContentText sx={{ mb: 2 }}>
             Chọn hành động bạn muốn thực hiện cho đơn hàng <strong>#{orderItem?.code || 'N/A'}</strong>:
           </DialogContentText>
-          
+
           <Box sx={{ mb: 2 }}>
             <Typography variant="subtitle2" color="text.secondary" gutterBottom>
               Thông tin đơn hàng:
@@ -535,7 +646,7 @@ function OrderPage() {
             </Paper>
           </Box>
         </DialogContent>
-        
+
         <DialogActions sx={{ p: 3, gap: 1 }}>
           {listStatusChange?.map((item) => (
             <Button
@@ -543,7 +654,7 @@ function OrderPage() {
               variant='contained'
               color='primary'
               startIcon={item.icon}
-              sx={{ 
+              sx={{
                 borderRadius: '20px',
                 px: 3,
                 py: 1

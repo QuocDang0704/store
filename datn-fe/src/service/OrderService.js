@@ -64,6 +64,20 @@ const OrderService = {
       HandleError.axios(error);
     }
   },
+  unpaidVnpayOrders: async (id) => {
+    try {
+      const res = await axios.request({
+        method: 'post',
+        url: API_URL + '/pay-order' + '/' + id,
+        headers: {
+          Authorization: 'Bearer ' + (await AuthService.getAccessToken()),
+        },
+      });
+      return res.data;
+    } catch (error) {
+      HandleError.axios(error);
+    }
+  }
 };
 
 export default OrderService;

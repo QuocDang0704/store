@@ -35,7 +35,7 @@ public class VNPayService {
             } else {
                 // Giao dịch thất bại
                 Order order = orderRepository.findByIdOrThrow(Long.valueOf(orderId));
-                orderRepository.deleteById(order.getId());
+                // orderRepository.deleteById(order.getId());
                 response.sendRedirect("http://localhost:3000/payment-failed");
             }
         }

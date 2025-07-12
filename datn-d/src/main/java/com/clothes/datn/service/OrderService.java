@@ -21,6 +21,7 @@ import org.springframework.security.core.parameters.P;
 import org.springframework.stereotype.Service;
 
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -177,5 +178,51 @@ public class OrderService {
         return data.stream().map(obj -> {
             return obj[0].toString();
         }).collect(Collectors.toList());
+    }
+
+    public List<Order> getUnpaidVnPayOrders() {
+        return oderRepository.findByIsPaymentFalseAndPaymentMethods(Constant.PaymentMethods.PaymentOverVnpay);
+    }
+
+    public List<OrderResponseDto> payUnpaidVnPayOrders() {
+        List<Order> unpaidOrders = getUnpaidVnPayOrders();
+        List<OrderResponseDto> results = new ArrayList<>();
+        
+        for (Order order : unpaidOrders) {
+            try {
+                String linkPay = vnPayService.getPay(order.getTotal(), order.getId());
+                OrderResponseDto orderResponseDto = MapperUtils.map(order, OrderResponseDto.class);
+                orderResponseDto.setLink(linkPay);
+                results.add(orderResponseDto);
+            } catch (Exception e) {
+                // Log error but continue with other orders
+                System.err.println("Error generating payment link for order " + order.getId() + ": " + e.getMessage());
+            }
+        }
+        
+        return results;
+    }
+
+    public OrderResponseDto payOrderById(Long orderId) {
+        Order order = this.oderRepository.findByIdOrThrow(orderId);
+        
+        // Kiểm tra xem đơn hàng đã thanh toán chưa
+        if (order.getIsPayment()) {
+            throw new BadRequestException("Đơn hàng đã được thanh toán");
+        }
+        
+        // Kiểm tra xem đơn hàng có phải thanh toán qua VNPay không
+        if (!order.getPaymentMethods().equals(Constant.PaymentMethods.PaymentOverVnpay)) {
+            throw new BadRequestException("Đơn hàng không sử dụng phương thức thanh toán VNPay");
+        }
+        
+        try {
+            String linkPay = vnPayService.getPay(order.getTotal(), order.getId());
+            OrderResponseDto orderResponseDto = MapperUtils.map(order, OrderResponseDto.class);
+            orderResponseDto.setLink(linkPay);
+            return orderResponseDto;
+        } catch (Exception e) {
+            throw new BadRequestException("Lỗi tạo link thanh toán: " + e.getMessage());
+        }
     }
 }

@@ -2,7 +2,6 @@ package com.clothes.datn.controllers;
 
 import com.clothes.datn.dto.OrderDto;
 import com.clothes.datn.dto.ResponseDTO;
-import com.clothes.datn.service.ColorService;
 import com.clothes.datn.service.OrderService;
 import com.clothes.datn.utils.Constant;
 import com.clothes.datn.vnpay.VNPayService;
@@ -23,7 +22,6 @@ import java.util.Map;
 @Tag(name = "Oder", description = "Đơn hàng")
 @CrossOrigin(origins = "*")
 public class OrderController {
-    private final ColorService colorService;
     private final OrderService orderService;
     private final VNPayService vnPayService;
 
@@ -97,6 +95,24 @@ public class OrderController {
     @GetMapping("/getListYear")
     public ResponseDTO getListYear() {
         return ResponseDTO.success(orderService.getListYear());
+    }
+
+    @GetMapping("/unpaid-vnpay-orders")
+    @Operation(summary = "Lấy danh sách đơn hàng VNPay chưa thanh toán")
+    public ResponseDTO getUnpaidVnPayOrders() {
+        return ResponseDTO.success(orderService.getUnpaidVnPayOrders());
+    }
+
+    @PostMapping("/pay-unpaid-vnpay-orders")
+    @Operation(summary = "Thanh toán các đơn hàng VNPay chưa thanh toán")
+    public ResponseDTO payUnpaidVnPayOrders() {
+        return ResponseDTO.success(orderService.payUnpaidVnPayOrders());
+    }
+
+    @PostMapping("/pay-order/{orderId}")
+    @Operation(summary = "Thanh toán đơn hàng theo ID")
+    public ResponseDTO payOrderById(@PathVariable("orderId") Long orderId) {
+        return ResponseDTO.success(orderService.payOrderById(orderId));
     }
 
 }
