@@ -1,12 +1,16 @@
-import { AddCircleOutline, CssOutlined, Delete, Edit } from "@mui/icons-material";
+import { AddCircleOutline, Delete, Edit } from "@mui/icons-material";
 import {
     Box,
     Button,
+    Card,
+    CardContent,
+    Divider,
     FormControl,
     Grid,
     IconButton,
     InputLabel,
     MenuItem,
+    Paper,
     Select,
     Table,
     TextField,
@@ -139,171 +143,201 @@ const ProductDetail = (productDetails) => {
     }
 
     return (
-        <Grid container spacing={3}>
+        <Paper elevation={3} sx={{ p: 3, borderRadius: 3, background: '#fafbfc' }}>
             <Loading isLoading={isLoading} />
-            <Grid item xs={12} sx={{ display: "flex", justifyContent: "space-between", margin: '0 0 5px 0' }}>
-                <Typography variant="h4" fontWeight="bold">
+            <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: 'center', mb: 2 }}>
+                <Typography variant="h4" fontWeight="bold" color="primary.main">
                     Sản phẩm chi tiết
                 </Typography>
-                <IconButton onClick={() => {
-                    setItem({});
-                    setImagePreviewDetail(null);
-                }}>
-                    <AddCircleOutline /> Thêm mới
-                </IconButton>
-            </Grid>
-            <Grid container item xs={12} component='form' onSubmit={handleSubmit}>
-                <Grid item xs={2} sx={{ display: "flex", alignItems: "center" }}>
-                    <Typography>Tên Sản phẩm</Typography>
-                </Grid>
-                <Grid item xs={10}>
-                    <TextField
-                        id='name'
-                        name='name'
-                        variant="outlined"
-                        fullWidth
-                        margin="normal"
-                        value={productInfo.name || ""}
-                        disabled={true}
-                    />
-                    <TextField
-                        id='productId'
-                        name='productId'
-                        variant="outlined"
-                        fullWidth
-                        margin="normal"
-                        value={productInfo.id || ""}
-                        style={{ display: 'none' }}
-                    />
-                </Grid>
-
-                <Grid item xs={2} sx={{ display: "flex", alignItems: "center" }}>
-                    <Typography>Ảnh</Typography>
-                </Grid>
-                <Grid item xs={10} sx={{ display: "flex", alignItems: "center", mt: 2 }}>
-                    <input
-                        // accept="image/*"
-                        style={{ display: 'none' }}
-                        id="upload-file-detail"
-                        name="upload-file-detail"
-                        type="file"
-                        onChange={(e) => {
-                            const file = e.target.files[0];
-                            if (imagePreviewDetail) {
-                                URL.revokeObjectURL(imagePreviewDetail);
-                            }
-                            setImagePreviewDetail(URL.createObjectURL(file)); // Hiển thị xem trước ảnh
-                            // Handle file upload logic here
-                        }}
-                    />
-                    <label htmlFor="upload-file-detail">
-                        <Button
-                            variant="contained"
-                            component="span"
-                            startIcon={<CloudUploadIcon />}
-                        >
-                            Chọn ảnh
-                        </Button>
-                    </label>
-                    {imagePreviewDetail && (
-                        <img
-                            src={imagePreviewDetail}
-                            alt="Ảnh xem trước"
-                            style={{ marginLeft: '30px', maxWidth: '150px', maxHeight: '150px' }}
-                        />
-                    )}
-                </Grid>
-                <Grid item xs={2} sx={{ display: "flex", alignItems: "center" }}>
-                    <Typography>Số lượng</Typography>
-                </Grid>
-                <Grid item xs={10}>
-                    <TextField
-                        id='quantity'
-                        name='quantity'
-                        variant="outlined"
-                        fullWidth
-                        margin="normal"
-                        value={item?.quantity || ""}
-                        onChange={(e) => {
-                            const value = e.target.value;
-                            setItem((prev) => {
-                                return { ...prev, quantity: value };
-                            });
-                        }}
-                    />
-                </Grid>
-
-                <Grid item xs={2} sx={{ display: "flex", alignItems: "center" }}>
-                    <Typography>Kích cỡ</Typography>
-                </Grid>
-                <Grid item xs={10}>
-                    <FormControl fullWidth variant="outlined" margin="normal">
-                        <Select
-                            labelId="size-label"
-                            id="sizeId"
-                            name="sizeId"
-                            value={item.sizeId || ""}
-                            onChange={(e) => {
-                                const value = e.target.value;
-                                console.log(value);
-                                setItem((prev) => {
-                                    return { ...prev, sizeId: value };
-                                });
-                            }}
-                        >
-                            {listSize.map((size) => (
-                                <MenuItem key={size.id} value={size.id}>
-                                    {size.name}
-                                </MenuItem>
-                            ))}
-                        </Select>
-                    </FormControl>
-                </Grid>
-
-                <Grid item xs={2} sx={{ display: "flex", alignItems: "center" }}>
-                    <Typography>Màu sắc</Typography>
-                </Grid>
-                <Grid item xs={10}>
-                    <FormControl fullWidth variant="outlined" margin="normal">
-                        <Select
-                            labelId="color-label"
-                            id="colorId"
-                            name="colorId"
-                            value={item.colorId || ""}
-                            onChange={(e) => {
-                                const value = e.target.value;
-                                setItem((prev) => {
-                                    return { ...prev, colorId: value };
-                                });
-                            }}
-                        >
-                            {listColor.map((color) => (
-                                <MenuItem key={color.id} value={color.id}>
-                                    {color.name}
-                                </MenuItem>
-                            ))}
-                        </Select>
-                    </FormControl>
-                </Grid>
-
-                <Grid item xs={12} sx={{ mt: 2 }}>
-                    <Box sx={{ display: "flex", justifyContent: "flex-end", width: 1 }}>
-                        <Button type='submit' variant="contained" fullWidth>
-                            {item.id ? "Cập nhật" : "Thêm mới"}
-                        </Button>
-                    </Box>
-                </Grid>
-            </Grid>
-
-            <Grid item xs={12} className="my-4 p-2 border rounded">
-                <TableContainer >
+                <Button
+                    variant="outlined"
+                    startIcon={<AddCircleOutline />}
+                    onClick={() => {
+                        setItem({});
+                        setImagePreviewDetail(null);
+                    }}
+                    sx={{ borderRadius: 2, fontWeight: 600 }}
+                >
+                    Thêm mới
+                </Button>
+            </Box>
+            <Divider sx={{ mb: 3 }} />
+            <Card elevation={0} sx={{ mb: 3, p: 2, borderRadius: 2, background: '#fff' }}>
+                <CardContent>
+                    <Grid container spacing={2} component='form' onSubmit={handleSubmit}>
+                        <Grid item xs={12} md={6}>
+                            <Typography fontWeight={600} mb={1}>Tên Sản phẩm</Typography>
+                            <TextField
+                                id='name'
+                                name='name'
+                                variant="outlined"
+                                fullWidth
+                                margin="dense"
+                                value={productInfo.name || ""}
+                                disabled={true}
+                                size="small"
+                            />
+                            <TextField
+                                id='productId'
+                                name='productId'
+                                variant="outlined"
+                                fullWidth
+                                margin="dense"
+                                value={productInfo.id || ""}
+                                style={{ display: 'none' }}
+                            />
+                        </Grid>
+                        <Grid item xs={12} md={6}>
+                            <Typography fontWeight={600} mb={1}>Ảnh</Typography>
+                            <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                                <input
+                                    style={{ display: 'none' }}
+                                    id="upload-file-detail"
+                                    name="upload-file-detail"
+                                    type="file"
+                                    onChange={(e) => {
+                                        const file = e.target.files[0];
+                                        if (imagePreviewDetail) {
+                                            URL.revokeObjectURL(imagePreviewDetail);
+                                        }
+                                        setImagePreviewDetail(URL.createObjectURL(file));
+                                    }}
+                                />
+                                <label htmlFor="upload-file-detail">
+                                    <Button
+                                        variant="contained"
+                                        component="span"
+                                        sx={{ borderRadius: 2, fontWeight: 600 }}
+                                    >
+                                        Chọn ảnh
+                                    </Button>
+                                </label>
+                                {imagePreviewDetail && (
+                                    <Box
+                                        sx={{
+                                            ml: 3,
+                                            border: '1px solid #e0e0e0',
+                                            borderRadius: 2,
+                                            overflow: 'hidden',
+                                            width: 100,
+                                            height: 100,
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                            boxShadow: 1,
+                                            background: '#fafbfc',
+                                        }}
+                                    >
+                                        <img
+                                            src={imagePreviewDetail}
+                                            alt="Ảnh xem trước"
+                                            style={{ maxWidth: '100%', maxHeight: '100%', borderRadius: 8 }}
+                                        />
+                                    </Box>
+                                )}
+                            </Box>
+                        </Grid>
+                        <Grid item xs={12} md={4}>
+                            <Typography fontWeight={600} mb={1}>Số lượng</Typography>
+                            <TextField
+                                id='quantity'
+                                name='quantity'
+                                variant="outlined"
+                                fullWidth
+                                margin="dense"
+                                value={item?.quantity || ""}
+                                onChange={(e) => {
+                                    const value = e.target.value;
+                                    setItem((prev) => {
+                                        return { ...prev, quantity: value };
+                                    });
+                                }}
+                                size="small"
+                                type="number"
+                                inputProps={{ min: 0 }}
+                            />
+                        </Grid>
+                        <Grid item xs={12} md={4}>
+                            <Typography fontWeight={600} mb={1}>Kích cỡ</Typography>
+                            <FormControl fullWidth variant="outlined" margin="dense" size="small">
+                                <Select
+                                    labelId="size-label"
+                                    id="sizeId"
+                                    name="sizeId"
+                                    value={item.sizeId || ""}
+                                    onChange={(e) => {
+                                        const value = e.target.value;
+                                        setItem((prev) => {
+                                            return { ...prev, sizeId: value };
+                                        });
+                                    }}
+                                >
+                                    {listSize.map((size) => (
+                                        <MenuItem key={size.id} value={size.id}>
+                                            {size.name}
+                                        </MenuItem>
+                                    ))}
+                                </Select>
+                            </FormControl>
+                        </Grid>
+                        <Grid item xs={12} md={4}>
+                            <Typography fontWeight={600} mb={1}>Màu sắc</Typography>
+                            <FormControl fullWidth variant="outlined" margin="dense" size="small">
+                                <Select
+                                    labelId="color-label"
+                                    id="colorId"
+                                    name="colorId"
+                                    value={item.colorId || ""}
+                                    onChange={(e) => {
+                                        const value = e.target.value;
+                                        setItem((prev) => {
+                                            return { ...prev, colorId: value };
+                                        });
+                                    }}
+                                    renderValue={(selected) => {
+                                        const color = listColor.find((c) => c.id === selected);
+                                        return color ? (
+                                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                                <Box sx={{ width: 18, height: 18, borderRadius: '50%', background: color.hex, border: '1px solid #ccc', mr: 1 }} />
+                                                <span>{color.name}</span>
+                                            </Box>
+                                        ) : '';
+                                    }}
+                                >
+                                    {listColor.map((color) => (
+                                        <MenuItem key={color.id} value={color.id}>
+                                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                                <Box sx={{ width: 18, height: 18, borderRadius: '50%', background: color.hex, border: '1px solid #ccc', mr: 1 }} />
+                                                <span>{color.name}</span>
+                                            </Box>
+                                        </MenuItem>
+                                    ))}
+                                </Select>
+                            </FormControl>
+                        </Grid>
+                        <Grid item xs={12} sx={{ mt: 2 }}>
+                            <Box sx={{ display: "flex", justifyContent: "flex-end", width: 1 }}>
+                                <Button type='submit' variant="contained" color="primary" sx={{ borderRadius: 2, fontWeight: 600, px: 5 }}>
+                                    {item.id ? "Cập nhật" : "Thêm mới"}
+                                </Button>
+                            </Box>
+                        </Grid>
+                    </Grid>
+                </CardContent>
+            </Card>
+            <Card elevation={0} sx={{ p: 2, borderRadius: 2, background: '#fff' }}>
+                <Typography variant="h6" fontWeight={600} mb={2} color="primary.main">
+                    Danh sách chi tiết sản phẩm
+                </Typography>
+                <TableContainer sx={{ borderRadius: 2, border: '1px solid #e0e0e0' }}>
                     <Table stickyHeader aria-label="sticky table">
                         <TableHead>
                             <TableRow>
                                 {columnsDetail.map((column) => (
                                     <TableCell
                                         key={column.id}
-                                        style={{ minWidth: column.minWidth }}
+                                        style={{ minWidth: column.minWidth, fontWeight: 700, background: '#f5f6fa', color: '#333', borderBottom: '2px solid #e0e0e0' }}
+                                        align={column.id === 'STT' || column.id === 'images' ? 'center' : 'left'}
                                     >
                                         {column.label}
                                     </TableCell>
@@ -313,34 +347,46 @@ const ProductDetail = (productDetails) => {
                         <TableBody>
                             {data?.map((row, index) => {
                                 return (
-                                    <TableRow hover role="checkbox" tabIndex={-1} key={row.id}>
+                                    <TableRow hover role="checkbox" tabIndex={-1} key={row.id} sx={{ '&:hover': { background: '#f0f4ff' } }}>
                                         {columnsDetail.map((column) => {
                                             const value = row[column.id];
                                             return (
-                                                <TableCell key={column.id}>
-                                                    {column.id === "STT" ? index + 1 : ""}
-                                                    {column.id === "images" ? (
-                                                        <img src={value} alt="product" style={{ width: 50, height: 50 }} />
+                                                <TableCell key={column.id} align={column.id === 'STT' || column.id === 'images' ? 'center' : 'left'}>
+                                                    {column.id === "STT" ? (
+                                                        <Typography fontWeight={600}>{index + 1}</Typography>
+                                                    ) : column.id === "images" ? (
+                                                        <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+                                                            <img src={value} alt="product" style={{ width: 50, height: 50, borderRadius: 8, border: '1px solid #e0e0e0', objectFit: 'cover' }} />
+                                                        </Box>
+                                                    ) : column.id === "colorName" ? (
+                                                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                                            <Box sx={{ width: 18, height: 18, borderRadius: '50%', background: (listColor.find(c => c.name === row.colorName)?.hex || '#eee'), border: '1px solid #ccc', mr: 1 }} />
+                                                            <span>{row.colorName}</span>
+                                                        </Box>
                                                     ) : column.id === "action" ? (
-                                                        <Fragment>
+                                                        <Box sx={{ display: 'flex', gap: 1, justifyContent: 'center' }}>
                                                             <IconButton
                                                                 size='small'
+                                                                color="primary"
                                                                 onClick={() => {
                                                                     setImagePreviewDetail(row.images)
                                                                     setItem(row);
                                                                 }}
+                                                                sx={{ borderRadius: 2 }}
                                                             >
                                                                 <Edit />
                                                             </IconButton>
                                                             <IconButton
                                                                 size='small'
+                                                                color="error"
                                                                 onClick={() => handleDelete(row.id)}
+                                                                sx={{ borderRadius: 2 }}
                                                             >
                                                                 <Delete />
                                                             </IconButton>
-                                                        </Fragment>
+                                                        </Box>
                                                     ) : (
-                                                        value
+                                                        <Typography>{value}</Typography>
                                                     )}
                                                 </TableCell>
                                             );
@@ -351,8 +397,8 @@ const ProductDetail = (productDetails) => {
                         </TableBody>
                     </Table>
                 </TableContainer>
-            </Grid>
-        </Grid>
+            </Card>
+        </Paper>
     );
 }
 

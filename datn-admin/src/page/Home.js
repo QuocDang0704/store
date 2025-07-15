@@ -27,7 +27,8 @@ import {
   Divider,
   Chip,
   Alert,
-  Stack
+  Stack,
+  TextField
 } from '@mui/material';
 import Chart from 'react-apexcharts';
 import { useNavigate } from 'react-router-dom';
@@ -65,9 +66,11 @@ function Home() {
   const [arrayExpense, setArrayExpense] = useState([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
   const [totalRevenue, setTotalRevenue] = useState(0);
   const [totalExpense, setTotalExpense] = useState(0);
-  const [year, setYear] = useState(2024);
+  const [year, setYear] = useState(2025);
   const [listYear, setListYear] = useState([]);
   const [totalUser, setTotalUser] = useState(0);
+  // Thêm state cho search
+  const [searchTerm, setSearchTerm] = useState("");
 
   useEffect(() => {
     fetchData();
@@ -428,15 +431,25 @@ function Home() {
       {/* Inventory Table */}
       <Card>
         <CardContent>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3, flexWrap: 'wrap', gap: 2 }}>
             <Typography variant="h6" sx={{ fontWeight: 600, color: '#212B36' }}>
               Sản phẩm tồn kho
             </Typography>
-            <Chip 
-              label={`${data.filter(item => item.totalQuantity === 0).length} sản phẩm hết hàng`}
-              color="error"
-              icon={<Warning />}
-            />
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+              <TextField
+                size="small"
+                variant="outlined"
+                placeholder="Tìm kiếm sản phẩm..."
+                value={searchTerm}
+                onChange={e => setSearchTerm(e.target.value)}
+                sx={{ minWidth: 220 }}
+              />
+              <Chip 
+                label={`${data.filter(item => item.totalQuantity === 0).length} sản phẩm hết hàng`}
+                color="error"
+                icon={<Warning />}
+              />
+            </Box>
           </Box>
 
           <TableContainer component={Paper} sx={{ 
@@ -468,7 +481,9 @@ function Home() {
                 </TableRow>
               </TableHead>
               <TableBody>
-                {data?.map((row, index) => {
+                {(data?.filter(row =>
+                  row.name?.toLowerCase().includes(searchTerm.toLowerCase())
+                ))?.map((row, index) => {
                   return (
                     <TableRow 
                       hover
